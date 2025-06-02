@@ -1,0 +1,51 @@
+---
+# role: jomrr.bind
+# file: tasks/main.yml
+
+- name: "BIND | Set os_family variables"
+  ansible.builtin.include_vars: '{{ ansible_os_family }}.yml'
+
+- name: "BIND | Set distribution variables"
+  ansible.builtin.include_vars: "{{ item }}"
+  vars:
+    params:
+      files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml'
+      paths:
+        - 'vars'
+      skip: true
+  loop: "{{ query('first_found', params, errors='ignore') }}"
+
+- name: "BIND | Install packages"
+  ansible.builtin.package:
+    name: "{{ bind_packages }}"
+    state: present
+
+- name: "BIND | Generate {{ bind_conf_file }}"
+  ansible.builtin.template:
+    src: "named.conf.j2"
+    dest: "{{ bind_conf_file }}"
+    owner: root
+    group: "{{ bind_group }}"
+    mode: "0640"
+  notify: "Bind service"
+
+- name: "BIND | Generate named.conf.local"
+  ansible.builtin.template:
+    src: "named.conf.local.j2"
+    dest: "{{ bind_conf_dir }}/named.conf.local"
+    owner: root
+    group: "{{ bind_group }}"
+    mode: "0640"
+  notify: "Bind service"
+
+- name: "BIND | Generate named.conf.options"
+  ansible.builtin.template:
+    src: "named.conf.options.j2"
+    dest: "{{ bind_conf_dir }}/named.conf.options"
+    owner: root
+    group: "{{ bind_group }}"
+    mode: "0640"
+  notify: "Bind service"

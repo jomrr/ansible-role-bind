@@ -1,0 +1,7 @@
+// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// {{ template_destpath }}
+// {{ ansible_managed }}
+
+{% for file in bind_includes %}
+include "{{ file }}";
+{% endfor %}

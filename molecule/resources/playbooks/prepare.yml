@@ -1,0 +1,33 @@
+# role: jomrr.bind
+# file: molecule/resources/playbooks/prepare.yml
+
+- name: "PLAYBOOK | Prepare | bind"
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: "Update apk cache"
+      community.general.apk:
+        update_cache: true
+      when: ansible_pkg_mgr == "apk"
+
+    - name: "Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_pkg_mgr == "apt"
+
+    - name: "Update dnf cache"
+      ansible.builtin.dnf:
+        update_cache: true
+      when: ansible_pkg_mgr == "dnf"
+
+    - name: "Update pacman cache"
+      community.general.pacman:
+        update_cache: true
+      when: ansible_pkg_mgr == "pacman"
+
+    - name: "Update zypper cache"
+      community.general.zypper:
+        name: sudo
+        update_cache: true
+      when: ansible_pkg_mgr == "zypper"

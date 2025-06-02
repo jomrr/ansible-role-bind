@@ -1,0 +1,33 @@
+// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// {{ template_destpath }}
+// {{ ansible_managed }}
+
+options {
+    directory               "{{ bind_dir }}";
+    managed-keys-directory  "{{ bind_managed_keys_dir }}";
+
+    dump-file               "{{ bind_data_dir }}/cache_dump.db";
+    memstatistics-file      "{{ bind_data_dir }}/named.memstats";
+    recursing-file          "{{ bind_data_dir }}/named.recursing";
+    secroots-file           "{{ bind_data_dir }}/named.secroots";
+    statistics-file         "{{ bind_data_dir }}/named.stats";
+
+    pid-file                "{{ bind_run_dir }}/named.pid";
+    session-keyfile         "{{ bind_run_dir }}/session.key";
+
+{% if ansible_os_family == 'RedHat' %}
+    include "/etc/crypto-policies/back-ends/bind.config";
+
+{% endif %}
+{% for key, value in bind_conf.options.items() %}
+{% if value is iterable and value is not string %}
+    {{ key }} {
+{% for item in value %}
+        {{ item }};
+{% endfor %}
+    };
+{% else %}
+    {{ key }} {{ value }};
+{% endif %}
+{% endfor %}
+};

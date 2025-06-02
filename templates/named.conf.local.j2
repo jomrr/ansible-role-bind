@@ -1,0 +1,18 @@
+// vim:  set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// file: {{ template_destpath }}
+// desc: {{ ansible_managed }}
+
+{% if bind_tsig_keys %}
+{% for key in bind_tsig_keys %}
+include "{{ bind_conf_dir }}/{{ key.name }}.key";
+{% endfor %}
+
+{% endif %}
+{% for name, acl in bind_conf.acls.items() %}
+acl "{{ name }}" {
+{% for item in acl %}
+    {{ item }};
+{% endfor %}
+};
+
+{% endfor %}

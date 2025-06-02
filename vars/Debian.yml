@@ -1,0 +1,43 @@
+---
+# role: jomrr.bind
+# file: vars/Debian.yml
+
+# Packages for bind
+bind_packages:
+  - "bind9"
+  - "bind9-dnsutils"
+  - "bind9-utils"
+
+# Service name for bind
+bind_service_name: "bind9"
+
+# User and group name for bind
+bind_user: "bind"
+bind_group: "bind"
+
+# Configuration directory for bind
+bind_conf_dir: "/etc/bind"
+
+# Main configuration file for bind
+bind_conf_file: "/etc/bind/named.conf"
+
+# Zone files directory for bind
+bind_dir: "/var/cache/bind"
+
+# Default included config files
+bind_includes:
+  - "/etc/bind/named.conf.local"
+  - "/etc/bind/named.conf.options"
+  - "/etc/bind/named.conf.default-zones"
+
+# BIND log dir
+bind_log_dir: "/var/log/bind"
+
+# Run dir
+bind_run_dir: "/var/run/named"
+
+# BIND data dir
+bind_data_dir: "/var/cache/bind"
+
+# Managed keys directory
+bind_managed_keys_dir: "/var/cache/bind"

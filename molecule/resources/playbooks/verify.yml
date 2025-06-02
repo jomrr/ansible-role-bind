@@ -1,0 +1,11 @@
+# role: jomrr.bind
+# file: molecule/resources/playbooks/verify.yml
+
+- name: "PLAYBOOK | Verify | bind"
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Assert true"
+      ansible.builtin.assert:
+        that: "true"
+        fail_msg: "This should never fail"

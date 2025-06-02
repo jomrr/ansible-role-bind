@@ -1,0 +1,44 @@
+---
+# role: jomrr.bind
+# file: vars/RedHat.yml
+
+# Packages for bind
+bind_packages:
+  - "bind"
+  - "bind-dnssec-utils"
+  - "bind-utils"
+
+# Service name for bind
+bind_service_name: "named"
+
+# User and group name for bind
+bind_user: "named"
+bind_group: "named"
+
+# Configuration directory for bind
+bind_conf_dir: "/etc/named"
+
+# Main configuration file for bind
+bind_conf_file: "/etc/named.conf"
+
+# Zone files directory for bind
+bind_dir: "/var/named"
+
+# Default included config files
+bind_includes:
+  - "/etc/named/named.conf.local"
+  - "/etc/named/named.conf.options"
+  - "/etc/named.rfc1912.zones"
+  - "/etc/named.root.key"
+
+# BIND log dir
+bind_log_dir: "/var/log/named"
+
+# Run dir
+bind_run_dir: "/run/named"
+
+# BIND data dir
+bind_data_dir: "/var/named/data"
+
+# Managed keys directory
+bind_managed_keys_dir: "/var/named/dynamic"

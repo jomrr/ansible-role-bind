@@ -1,0 +1,28 @@
+---
+# role: jomrr.bind
+# file: molecule/libvirt/molecule.yml
+
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+    type: libvirt
+lint: set -e; ansible-lint
+platforms:
+  - name: ${img:-almalinux9}-bind
+    box: "${uns:-generic}/${img:-almalinux9}"
+    memory: 4096
+    cpus: 4
+provisioner:
+  name: ansible
+  log: true
+  playbooks:
+    prepare: ../resources/playbooks/prepare.yml
+    converge: ../resources/playbooks/converge.yml
+    verify: ../resources/playbooks/verify.yml
+verifier:
+  name: ansible

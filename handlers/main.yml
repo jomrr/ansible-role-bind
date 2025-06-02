@@ -1,0 +1,9 @@
+---
+# role: jomrr.bind
+# file: handlers/main.yml
+
+- name: "Bind service"
+  ansible.builtin.systemd:
+    name: "{{ bind_service_name }}"
+    state: "{{ bind_service.state | default(restarted) }}"
+    enabled: "{{ bind_service.enabled | default(true) }}"
