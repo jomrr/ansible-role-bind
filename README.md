@@ -67,7 +67,7 @@ The following variables are part of the public role interface.
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
 | `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones. |
 | `bind_extra_statements` | `list` | `false` | [] | Additional complete top-level BIND statements for unsupported edge cases. |
-| `bind_zone_definitions` | `list` | `false` |  | Managed authoritative forward or reverse zone files.<br>Reverse zones use the same template with PTR records. |
+| `bind_zone_files` | `list` | `false` |  | Managed authoritative forward or reverse zone files.<br>Reverse zones use the same template with PTR records. |
 
 ## Managed Files
 
@@ -78,7 +78,7 @@ The following variables are part of the public role interface.
 - `/etc/named/named.conf.local` on Red Hat-family systems
 - `/etc/named.d/local.conf` on Suse systems
 - `<platform config directory>/<key-name>.key` when TSIG keys are configured
-- `<platform zone directory>/<zone-file>` when bind_zone_definitions is configured
+- `<platform zone directory>/<zone-file>` when bind_zone_files is configured
 
 ## Check Mode
 
@@ -106,7 +106,7 @@ changes notify the restart handler.
 - Package-native path options are used by default and can be overridden with `bind_option_*` variables.
 - Platform default includes are rendered automatically before additional `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
-- Managed forward and reverse zone files use absolute paths in `bind_zone_definitions`.
+- Managed forward and reverse zone files use absolute paths in `bind_zone_files`.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
@@ -203,7 +203,7 @@ Enable a local response policy zone for DNSBL-style filtering.
             file: /var/named/zones/db.rpz.local
             statements:
               - allow-query { localhost; }
-        bind_zone_definitions:
+        bind_zone_files:
           - name: rpz.local
             file: /var/named/zones/db.rpz.local
             primary: ns1.rpz.local.
@@ -342,7 +342,7 @@ Configure an authoritative primary zone and render the zone file.
             class: IN
             type: primary
             file: /var/named/zones/db.example.com
-        bind_zone_definitions:
+        bind_zone_files:
           - name: example.com
             file: /var/named/zones/db.example.com
             primary: ns1.example.com.

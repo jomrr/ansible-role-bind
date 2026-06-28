@@ -174,9 +174,9 @@ bind_extra_statements: []
 # bind_extra_statements:
 #   - server 192.0.2.10 { bogus yes; }
 
-# Managed authoritative zone file definitions.
-bind_zone_definitions: []
-# bind_zone_definitions:
+# Managed authoritative zone files.
+bind_zone_files: []
+# bind_zone_files:
 #   - name: example.com
 #     file: /var/named/zones/db.example.com
 #     dynamic: false

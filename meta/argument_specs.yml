@@ -307,7 +307,7 @@ argument_specs:
         default: []
         description: Additional complete top-level BIND statements for unsupported edge
           cases.
-      bind_zone_definitions:
+      bind_zone_files:
         type: list
         elements: dict
         required: false

@@ -9,7 +9,7 @@
     owner: "{{ (__bind_zone.dynamic | default(false)) | ternary(__bind_user, 'root') }}"
     group: "{{ __bind_group }}"
     mode: "0755"
-  loop: "{{ bind_zone_definitions }}"
+  loop: "{{ bind_zone_files }}"
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
@@ -22,7 +22,7 @@
     group: "{{ __bind_group }}"
     mode: "0640"
     validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
-  loop: "{{ bind_zone_definitions }}"
+  loop: "{{ bind_zone_files }}"
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"

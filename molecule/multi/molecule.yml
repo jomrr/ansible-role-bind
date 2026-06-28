@@ -68,7 +68,7 @@ provisioner:
               - "allow-transfer { {{ bind_multi_secondary_ip }}; }"
               - "also-notify { {{ bind_multi_secondary_ip }}; }"
               - "notify yes"
-        bind_zone_definitions:
+        bind_zone_files:
           - name: "example.com"
             file: "{{ bind_multi_zone_file }}"
             dynamic: true

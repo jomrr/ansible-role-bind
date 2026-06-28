@@ -38,7 +38,7 @@
 
 - name: "BIND | Configure zone files"
   ansible.builtin.include_tasks: "zone.yml"
-  when: bind_zone_definitions | length > 0
+  when: bind_zone_files | length > 0
 
 - name: "BIND | Generate configuration files"
   ansible.builtin.template:
