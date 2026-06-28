@@ -1,33 +1,79 @@
 // vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
 // {{ template_destpath }}
-// {{ ansible_managed }}
 
-options {
-    directory               "{{ bind_dir }}";
-    managed-keys-directory  "{{ bind_managed_keys_dir }}";
+{% for acl in bind_acls %}
+acl "{{ acl.name }}" {
+{% for entry in acl.entries %}
+    {{ entry }};
+{% endfor %}
+};
 
-    dump-file               "{{ bind_data_dir }}/cache_dump.db";
-    memstatistics-file      "{{ bind_data_dir }}/named.memstats";
-    recursing-file          "{{ bind_data_dir }}/named.recursing";
-    secroots-file           "{{ bind_data_dir }}/named.secroots";
-    statistics-file         "{{ bind_data_dir }}/named.stats";
+{% endfor %}
+{% for primaries in bind_primaries %}
+primaries "{{ primaries.name }}" {
+{% for entry in primaries.entries %}
+    {{ entry }};
+{% endfor %}
+};
 
-    pid-file                "{{ bind_run_dir }}/named.pid";
-    session-keyfile         "{{ bind_run_dir }}/session.key";
-
-{% if ansible_os_family == 'RedHat' %}
-    include "/etc/crypto-policies/back-ends/bind.config";
+{% endfor %}
+{% if bind_controls %}
+controls {
+{% for control in bind_controls %}
+    {{ control }};
+{% endfor %}
+};
 
 {% endif %}
-{% for key, value in bind_conf.options.items() %}
-{% if value is iterable and value is not string %}
-    {{ key }} {
-{% for item in value %}
-        {{ item }};
+options {
+{% for option in (__bind_options | default([])) + bind_options %}
+{% if option.include is defined and option.include %}
+    include "{{ option.include }}";
+{% elif option.raw is defined %}
+{% if option.raw is string %}
+{% for line in option.raw.splitlines() %}
+    {{ line }}
+{% endfor %}
+{% else %}
+{% for line in option.raw %}
+    {{ line }}
+{% endfor %}
+{% endif %}
+{% elif option.entries is defined %}
+    {{ option.name }}{% if option.arguments is defined %} {{ option.arguments }}{% endif %} {
+{% for entry in option.entries %}
+        {{ entry }};
 {% endfor %}
     };
-{% else %}
-    {{ key }} {{ value }};
+{% elif option.value is defined %}
+    {{ option.name }} {{ option.value }};
 {% endif %}
 {% endfor %}
 };
+
+{% if bind_logging.channels or bind_logging.categories %}
+logging {
+{% for channel in bind_logging.channels %}
+    channel {{ channel.name }} {
+{% if channel.file is defined %}
+        file "{{ channel.file }}"{% if channel.file_options is defined %} {{ channel.file_options }}{% endif %};
+{% endif %}
+{% if channel.severity is defined %}
+        severity {{ channel.severity }};
+{% endif %}
+{% if channel.print_time is defined %}
+        print-time {{ 'yes' if channel.print_time else 'no' }};
+{% endif %}
+{% if channel.print_severity is defined %}
+        print-severity {{ 'yes' if channel.print_severity else 'no' }};
+{% endif %}
+{% if channel.print_category is defined %}
+        print-category {{ 'yes' if channel.print_category else 'no' }};
+{% endif %}
+    };
+{% endfor %}
+{% for category in bind_logging.categories %}
+    category {{ category.name }} { {% for channel in category.channels %}{{ channel }}; {% endfor %}};
+{% endfor %}
+};
+{% endif %}

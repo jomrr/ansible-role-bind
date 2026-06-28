@@ -1,5 +1,5 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: meta/requirements.yml
 
 # roles that are required by this role

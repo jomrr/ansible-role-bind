@@ -1,5 +1,17 @@
 ; vim: set tabstop=4,shiftwidth=4,expandtabs,ft=bindzone
 ; {{ template_destpath }}
-; {{ ansible_managed }}
 
-
+$TTL {{ __bind_zone.ttl | default('1h') }}
+{% if __bind_zone.origin is defined %}
+$ORIGIN {{ __bind_zone.origin }}
+{% endif %}
+@ IN SOA {{ __bind_zone.primary }} {{ __bind_zone.email }} (
+    {{ __bind_zone.serial | default(1) }}
+    {{ __bind_zone.refresh | default('1h') }}
+    {{ __bind_zone.retry | default('15m') }}
+    {{ __bind_zone.expire | default('1w') }}
+    {{ __bind_zone.minimum | default('1d') }}
+)
+{% for record in __bind_zone.records | default([]) %}
+{{ record.name }}{% if record.ttl is defined %} {{ record.ttl }}{% endif %}{% if record.class is defined %} {{ record.class }}{% endif %} {{ record.type }} {{ record.data }}
+{% endfor %}

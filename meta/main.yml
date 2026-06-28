@@ -1,14 +1,17 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: meta/main.yml
 
 galaxy_info:
+  author: Jonas Mauer
+  description: Ansible role for setting up the ISC BIND DNS Server.
+  galaxy_tags:
+    - bind
+    - named
+    - dns
+    - zone
+  issue_tracker_url: https://github.com/jomrr/ansible-role-bind/issues
+  license: MIT
+  min_ansible_version: "2.20"
   namespace: jomrr
   role_name: bind
-  author: 'Jonas Mauer'
-  company: ''
-  description: "Ansible role for setting up bind."
-  license: MIT
-  issue_tracker_url: "https://github.com/jomrr/ansible-role-bind/issues"
-  min_ansible_version: "2.17"
-  galaxy_tags: []

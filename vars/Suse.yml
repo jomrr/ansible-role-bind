@@ -1,11 +1,10 @@
 ---
 # role: bind
-# file: vars/RedHat.yml
+# file: vars/Suse.yml
 
 # Packages for bind
 __bind_packages:
   - "bind"
-  - "bind-dnssec-utils"
   - "bind-utils"
 
 # Service name for bind
@@ -15,24 +14,36 @@ __bind_service_name: "named"
 __bind_user: "named"
 __bind_group: "named"
 
-# Configuration directory for bind
-__bind_conf_dir: "/etc/named"
+# Configuration directory for bind snippets
+__bind_conf_dir: "/etc/named.d"
 
 # Main configuration file for bind
 __bind_conf_file: "/etc/named.conf"
 
-# Red Hat keeps options and logging in named.conf.
+# Suse keeps options and logging in named.conf.
 __bind_main_config_style: "standalone"
 
 # Managed local include file.
-__bind_local_file: "/etc/named/named.conf.local"
+__bind_local_file: "/etc/named.d/local.conf"
 
 # Platform zones rendered into named.conf.
 __bind_platform_zones:
   - name: "."
-    class: "IN"
+    class: "in"
     type: "hint"
-    file: "/etc/named.ca"
+    file: "root.hint"
+  - name: "localhost"
+    class: "in"
+    type: "master"
+    file: "localhost.zone"
+  - name: "0.0.127.in-addr.arpa"
+    class: "in"
+    type: "master"
+    file: "127.0.0.zone"
+  - name: "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa"
+    class: "IN"
+    type: "master"
+    file: "127.0.0.zone"
 
 # Configuration files managed by this role.
 __bind_config_files:
@@ -43,7 +54,7 @@ __bind_config_files:
     validate: "{{ __bind_checkconf_command }}"
 
 # Zone files directory for bind
-__bind_dir: "/var/named"
+__bind_dir: "/var/lib/named"
 
 # Platform-specific options rendered before public bind_options.
 __bind_options:
@@ -65,12 +76,9 @@ __bind_options:
     value: '"{{ __bind_run_dir }}/named.pid"'
   - name: "session-keyfile"
     value: '"{{ __bind_run_dir }}/session.key"'
-  - include: "/etc/crypto-policies/back-ends/bind.config"
 
 # Default included config files
-__bind_includes:
-  - "/etc/named.rfc1912.zones"
-  - "/etc/named.root.key"
+__bind_includes: []
 
 # BIND log dir
 __bind_log_dir: "/var/log/named"
@@ -79,10 +87,10 @@ __bind_log_dir: "/var/log/named"
 __bind_run_dir: "/run/named"
 
 # BIND data dir
-__bind_data_dir: "/var/named/data"
+__bind_data_dir: "/var/lib/named/data"
 
 # Managed keys directory
-__bind_managed_keys_dir: "/var/named/dynamic"
+__bind_managed_keys_dir: "/var/lib/named/dyn"
 
 # Directories required by the rendered configuration.
 __bind_directories:

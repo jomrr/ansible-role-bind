@@ -1,51 +1,66 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: tasks/main.yml
 
 - name: "BIND | Set os_family variables"
-  ansible.builtin.include_vars: '{{ ansible_os_family }}.yml'
+  ansible.builtin.include_vars: "{{ ansible_facts.os_family }}.yml"
 
 - name: "BIND | Set distribution variables"
   ansible.builtin.include_vars: "{{ item }}"
   vars:
     params:
       files:
-        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
-        - '{{ ansible_distribution }}.yml'
-        - '{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml'
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}-{{ ansible_facts.distribution_major_version }}.yml"
       paths:
-        - 'vars'
+        - "vars"
       skip: true
   loop: "{{ query('first_found', params, errors='ignore') }}"
 
 - name: "BIND | Install packages"
   ansible.builtin.package:
-    name: "{{ bind_packages }}"
+    name: "{{ __bind_packages }}"
     state: present
 
-- name: "BIND | Generate {{ bind_conf_file }}"
-  ansible.builtin.template:
-    src: "named.conf.j2"
-    dest: "{{ bind_conf_file }}"
-    owner: root
-    group: "{{ bind_group }}"
-    mode: "0640"
-  notify: "Bind service"
+- name: "BIND | Create directories"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop: "{{ __bind_directories }}"
 
-- name: "BIND | Generate named.conf.local"
-  ansible.builtin.template:
-    src: "named.conf.local.j2"
-    dest: "{{ bind_conf_dir }}/named.conf.local"
-    owner: root
-    group: "{{ bind_group }}"
-    mode: "0640"
-  notify: "Bind service"
+- name: "BIND | Configure TSIG keys"
+  ansible.builtin.include_tasks: "tsig.yml"
+  when: bind_tsig_keys | length > 0
 
-- name: "BIND | Generate named.conf.options"
+- name: "BIND | Configure zone files"
+  ansible.builtin.include_tasks: "zone.yml"
+  when: bind_zone_definitions | length > 0
+
+- name: "BIND | Generate configuration files"
   ansible.builtin.template:
-    src: "named.conf.options.j2"
-    dest: "{{ bind_conf_dir }}/named.conf.options"
+    src: "{{ __bind_config_file.src }}"
+    dest: "{{ __bind_config_file.dest }}"
     owner: root
-    group: "{{ bind_group }}"
+    group: "{{ __bind_group }}"
     mode: "0640"
-  notify: "Bind service"
+    validate: "{{ __bind_config_file.validate | default(omit) }}"
+  loop: "{{ __bind_config_files }}"
+  loop_control:
+    loop_var: __bind_config_file
+    label: "{{ __bind_config_file.dest }}"
+  notify:
+    - "BIND | Validate configuration"
+    - "BIND | Restart service"
+
+- name: "BIND | Flush handlers"
+  ansible.builtin.meta: flush_handlers
+
+- name: "BIND | Enable and start service"
+  ansible.builtin.systemd:
+    name: "{{ __bind_service_name }}"
+    state: started
+    enabled: true

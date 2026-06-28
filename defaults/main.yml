@@ -1,117 +1,151 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: defaults/main.yml
 
-# Desired service state
-bind_service:
-  state: restarted
-  enabled: true
-
-# TSIG keys to be created and included
+# TSIG key files rendered below the platform configuration directory.
 bind_tsig_keys: []
-  # - name: "ddns"
-  #   algorithm: "hmac-sha256"
+# bind_tsig_keys:
+#   - name: ddns
+#     algorithm: hmac-sha256
+#     secret: vault_secret
 
-# Default variables for bind
-bind_conf:
-  acls:
-    local:
+# Named ACL declarations.
+bind_acls:
+  - name: "local"
+    entries:
       - "localhost"
-  options:
-    hostname: "\"hidden\""
-    server-id: "none"
-    version: "none"
-    "listen-on port 53":
-      - "127.0.0.1"
-    "listen-on-v6 port 53":
-      - "none"
-    allow-query:
-      - "local"
-    allow-recursion:
-      - "local"
-    disable-empty-zone: "."
-    dnssec-validation: "yes"
-    forward: only
-    forwarders:
-      - "127.0.0.1"
-    clients-per-query: 10
-    tcp-clients: 100
-    max-clients-per-query: 50
-    max-recursion-depth: 5
-    max-recursion-queries: 50
-    max-cache-size: "512m"
-    max-cache-ttl: "1d"
-    edns-udp-size: 1232
-    max-udp-size: 1232
-    rate-limit:
-      - "all-per-second 20"
-      - "errors-per-second 5"
-      - "nodata-per-second 5"
-      - "nxdomains-per-second 5"
-      - "responses-per-second 5"
-      - "referrals-per-second 5"
-      - "ipv4-prefix-length 24"
-      - "ipv6-prefix-length 56"
-      - "max-table-size 20000"
-      - "min-table-size 500"
-      - "slip 2"
-      - "window 5"
-      - "log-only no"
-    recursion: "yes"
-  logging:
-    channels:
-      - channel_name: "default_debug"
-        file: "data/named.run"
-        severity: "dynamic"
-        versions: 10
-        size: "128m"
-        permissions: "0640"
-        print_time: true
-      - channel_name: "security_file"
-        file: "{{ bind_log_dir }}/security.log"
-        severity: "dynamic"
-        versions: 10
-        size: "128m"
-        permissions: "0640"
-        print_time: true
-      - channel_name: "query_file"
-        file: "{{ bind_log_dir }}/query.log"
-        severity: "dynamic"
-        versions: 10
-        size: "128m"
-        permissions: "0640"
-        print_time: true
-      - channel_name: "update_file"
-        file: "{{ bind_log_dir }}/update.log"
-        severity: "dynamic"
-        versions: 10
-        size: "128m"
-        permissions: "0640"
-        print_time: true
-    categories:
-      security: ["security_file"]
-      queries: ["query_file"]
-      cname: ["query_file"]
-      resolver: ["query_file"]
-      update: ["update_file"]
-      lame-servers: ["null"]
-  zones:
-    - zone_name: "example.com"
-      zone_type: "master"
-      zone_file: "zone_fwd_com_example.db"
-      zone_options: {}
+# bind_acls:
+#   - name: dns-clients
+#     entries:
+#       - 127.0.0.1
+#       - 192.168.0.0/16
 
-bind_zone_definitions:
-  - name: "example.com"
-    primary: "ns1.example.com"
-    email: "hostmaster.example.com"
-    refresh: "1h"
-    retry: "15m"
-    expire: "1w"
-    minimum: "1d"
-    records:
-      - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com" }
-      - { name: "@", type: "NS", ttl: "1h", data: "ns2.example.com" }
-      - { name: "@", type: "MX", ttl: "1h", data: "10 mail.example.com" }
-      - { name: "ns1", type: "A", ttl: "1h", data: "10.0.0.1" }
-      - { name: "ns2", type: "A", ttl: "1h", data: "10.0.0.2" }
+# Named primaries lists used by secondary zones.
+bind_primaries: []
+# bind_primaries:
+#   - name: samba-dlz
+#     entries:
+#       - 192.168.254.10
+
+# Entries rendered inside the BIND controls block.
+bind_controls: []
+# bind_controls:
+#   - inet 127.0.0.1 port 953 allow { 127.0.0.1; } read-only yes
+
+# Ordered statements rendered inside the BIND options block.
+# Platform path defaults are rendered before these public option statements.
+# Values and entries are native BIND fragments.
+bind_options:
+  - name: "listen-on"
+    arguments: "port 53"
+    entries:
+      - "127.0.0.1"
+  - name: "listen-on-v6"
+    arguments: "port 53"
+    entries:
+      - "none"
+  - name: "recursion"
+    value: "yes"
+  - name: "allow-query"
+    entries:
+      - "local"
+  - name: "allow-recursion"
+    entries:
+      - "local"
+  - name: "allow-transfer"
+    entries:
+      - "none"
+  - name: "dnssec-validation"
+    value: "auto"
+  - name: "edns-udp-size"
+    value: 1232
+  - name: "max-udp-size"
+    value: 1232
+  - name: "max-clients-per-query"
+    value: 50
+  - name: "tcp-clients"
+    value: 100
+  - name: "max-cache-size"
+    value: "512M"
+  - name: "max-cache-ttl"
+    value: 86400
+  - name: "max-recursion-depth"
+    value: 5
+  - name: "max-recursion-queries"
+    value: 50
+  - name: "hostname"
+    value: "none"
+  - name: "server-id"
+    value: "none"
+  - name: "minimal-responses"
+    value: "yes"
+  - name: "version"
+    value: "none"
+# bind_options:
+#   - name: recursion
+#     value: "yes"
+#   - name: forwarders
+#     entries:
+#       - 1.1.1.1
+
+# BIND logging channels and categories.
+bind_logging:
+  channels:
+    - name: "default_debug"
+      file: "data/named.run"
+      severity: "dynamic"
+  categories: []
+# bind_logging:
+#   channels:
+#     - name: default_debug
+#       file: data/named.run
+#       file_options: versions 10 size 128m
+#       severity: dynamic
+#   categories:
+#     - name: queries
+#       channels:
+#         - default_debug
+
+# Additional top-level include files rendered after platform default includes.
+bind_includes: []
+# bind_includes:
+#   - /etc/named.rfc1912.zones
+
+# BIND DLZ blocks for integrations such as Samba BIND_DLZ primary mode.
+bind_dlz: []
+# bind_dlz:
+#   - name: AD DNS Zone
+#     statements:
+#       - database "dlopen /usr/lib64/samba/bind9/dlz_bind9.so"
+
+# BIND zone declarations.
+bind_zones: []
+# bind_zones:
+#   - name: example.com
+#     class: IN
+#     type: secondary
+#     primaries:
+#       - '"samba-dlz"'
+#     file: slaves/db.example.com
+
+# Additional complete top-level BIND statements for unsupported edge cases.
+bind_extra_statements: []
+# bind_extra_statements:
+#   - server 192.0.2.10 { bogus yes; }
+
+# Managed authoritative zone file definitions.
+bind_zone_definitions: []
+# bind_zone_definitions:
+#   - name: example.com
+#     file: zones/db.example.com
+#     primary: ns1.example.com
+#     email: hostmaster.example.com
+#     records:
+#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com" }
+#       - { name: "ns1", type: "A", ttl: "1h", data: "192.0.2.53" }
+#   - name: 2.0.192.in-addr.arpa
+#     file: zones/db.2.0.192.in-addr.arpa
+#     primary: ns1.example.com
+#     email: hostmaster.example.com
+#     records:
+#       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }

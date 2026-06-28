@@ -1,18 +1,52 @@
-// vim:  set tabstop=4,shiftwidth=4,expandtabs,ft=conf
-// file: {{ template_destpath }}
-// desc: {{ ansible_managed }}
+// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// {{ template_destpath }}
 
-{% if bind_tsig_keys %}
-{% for key in bind_tsig_keys %}
-include "{{ bind_conf_dir }}/{{ key.name }}.key";
+{% for include in bind_includes %}
+include "{{ include }}";
 {% endfor %}
+{% if bind_includes %}
 
 {% endif %}
-{% for name, acl in bind_conf.acls.items() %}
-acl "{{ name }}" {
-{% for item in acl %}
-    {{ item }};
+{% for dlz in bind_dlz %}
+{% if dlz.comment is defined %}
+// {{ dlz.comment }}
+{% endif %}
+dlz "{{ dlz.name }}" {
+{% for statement in dlz.statements | default([]) %}
+    {{ statement }};
 {% endfor %}
 };
 
+{% endfor %}
+{% for zone in bind_zones %}
+{% if zone.comment is defined %}
+// {{ zone.comment }}
+{% endif %}
+zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %} {
+{% if zone.type is defined %}
+    type {{ zone.type }};
+{% endif %}
+{% if zone.primaries is defined %}
+    primaries { {% for entry in zone.primaries %}{{ entry }}; {% endfor %}};
+{% endif %}
+{% if zone.file is defined %}
+    file "{{ zone.file }}";
+{% endif %}
+{% if zone.allow_update_forwarding is defined %}
+    allow-update-forwarding { {% for entry in zone.allow_update_forwarding %}{{ entry }}; {% endfor %}};
+{% endif %}
+{% if zone.forward is defined %}
+    forward {{ zone.forward }};
+{% endif %}
+{% if zone.forwarders is defined %}
+    forwarders { {% for entry in zone.forwarders %}{{ entry }}; {% endfor %}};
+{% endif %}
+{% for statement in zone.statements | default([]) %}
+    {{ statement }};
+{% endfor %}
+};
+
+{% endfor %}
+{% for statement in bind_extra_statements %}
+{{ statement }}
 {% endfor %}

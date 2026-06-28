@@ -1,3 +1,14 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: tasks/tsig.yml
+
+- name: "BIND | Generate TSIG key files"
+  ansible.builtin.template:
+    src: "tsig.j2"
+    dest: "{{ __bind_conf_dir }}/{{ item.name }}.key"
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0640"
+  loop: "{{ bind_tsig_keys }}"
+  no_log: true
+  notify: "BIND | Restart service"

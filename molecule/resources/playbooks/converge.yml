@@ -1,7 +1,8 @@
-# role: jomrr.bind
+---
+# role: bind
 # file: molecule/resources/playbooks/converge.yml
 
-- name: "PLAYBOOK | Converge | bind"
+- name: "Molecule | converge | bind"
   hosts: all
   gather_facts: true
   roles:

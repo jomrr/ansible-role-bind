@@ -1,9 +1,12 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: handlers/main.yml
 
-- name: "Bind service"
+- name: "BIND | Validate configuration"
+  ansible.builtin.command: "{{ __bind_checkconf_command | replace('%s', __bind_conf_file) }}"
+  changed_when: false
+
+- name: "BIND | Restart service"
   ansible.builtin.systemd:
-    name: "{{ bind_service_name }}"
-    state: "{{ bind_service.state | default(restarted) }}"
-    enabled: "{{ bind_service.enabled | default(true) }}"
+    name: "{{ __bind_service_name }}"
+    state: restarted

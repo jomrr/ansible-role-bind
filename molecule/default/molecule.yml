@@ -1,33 +1,34 @@
 ---
-# role: jomrr.ansible-role-bind
+# role: bind
 # file: molecule/default/molecule.yml
 
-scenario:
-  name: default
 dependency:
-  name: galaxy
-  requirements-file: meta/requirements.yml
+  name: "galaxy"
 driver:
-  name: podman
-lint: set -e; ansible-lint
+  name: "podman"
 provisioner:
-  name: ansible
+  name: "ansible"
   config_options:
     defaults:
-      interpreter_python: auto_silent
-      callback_whitelist: profile_tasks, timer, yaml
+      forks: 8
+      interpreter_python: "auto_silent"
+      allow_world_readable_tmpfiles: true
+      callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
+      callback_result_format: "yaml"
+      remote_tmp: "/tmp/.ansible/tmp"
     ssh_connection:
       pipelining: true
   log: true
   playbooks:
-    converge: ../resources/playbooks/converge.yml
-    verify: ../resources/playbooks/verify.yml
+    converge: "../resources/playbooks/converge.yml"
+    verify: "../resources/playbooks/verify.yml"
 verifier:
-  name: ansible
+  name: "ansible"
+scenario:
+  name: "default"
 platforms:
-  - name: bind
-    image: docker.io/${uns:-jomrr}/molecule-${img:-fedora}:${tag:-latest}
+  - name: "bind"
+    image: "docker.io/${uns:-jomrr}/molecule-${img:-fedora}:${tag:-latest}"
     pre_build_image: true
-    entrypoint: null
-    command: null
+    override_command: false
     systemd: true

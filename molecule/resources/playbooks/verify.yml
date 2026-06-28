@@ -1,7 +1,8 @@
-# role: jomrr.bind
+---
+# role: bind
 # file: molecule/resources/playbooks/verify.yml
 
-- name: "PLAYBOOK | Verify | bind"
+- name: "Molecule | verify | bind"
   hosts: all
   gather_facts: false
   tasks:

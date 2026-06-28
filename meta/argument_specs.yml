@@ -1,0 +1,333 @@
+---
+# role: bind
+# file: meta/argument_specs.yml
+
+argument_specs:
+  main:
+    short_description: Set up the ISC BIND DNS Server.
+    description:
+      - Installs ISC BIND packages and renders the main BIND configuration.
+      - Enables and starts the BIND service.
+      - Restarts the BIND service after configuration changes.
+      - The role interface models TSIG keys, BIND configuration blocks, and zone declarations.
+    options:
+      bind_tsig_keys:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - TSIG key declarations included from the managed local BIND configuration.
+          - Store real secrets in Ansible Vault.
+        options:
+          name:
+            type: str
+            required: true
+            description: TSIG key name and key file stem.
+          algorithm:
+            type: str
+            required: false
+            description: TSIG algorithm, for example hmac-sha256.
+          secret:
+            type: str
+            required: false
+            no_log: true
+            description: Base64-encoded TSIG secret.
+      bind_acls:
+        type: list
+        elements: dict
+        required: false
+        description: Named BIND ACL declarations.
+        options:
+          name:
+            type: str
+            required: true
+            description: ACL name.
+          entries:
+            type: list
+            elements: raw
+            required: true
+            description: Address match list entries.
+      bind_primaries:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description: Named BIND primaries lists for secondary zones.
+        options:
+          name:
+            type: str
+            required: true
+            description: Primaries list name.
+          entries:
+            type: list
+            elements: raw
+            required: true
+            description: Primary server address match entries.
+      bind_controls:
+        type: list
+        elements: str
+        required: false
+        default: []
+        description: Native BIND controls entries rendered inside a controls block.
+      bind_options:
+        type: list
+        elements: dict
+        required: false
+        description:
+          - Ordered BIND option statements rendered after platform path defaults.
+        options:
+          name:
+            type: str
+            required: false
+            description: BIND directive name.
+          arguments:
+            type: raw
+            required: false
+            description: Arguments rendered between the directive name and an entries block.
+          value:
+            type: raw
+            required: false
+            description: Scalar directive value.
+          entries:
+            type: list
+            elements: raw
+            required: false
+            description: Block entries rendered as native BIND fragments.
+          include:
+            type: str
+            required: false
+            description: Include file rendered at the current statement level.
+          raw:
+            type: raw
+            required: false
+            description: Raw BIND configuration lines.
+      bind_logging:
+        type: dict
+        required: false
+        description:
+          - BIND logging configuration with channels and categories.
+        options:
+          channels:
+            type: list
+            elements: dict
+            required: false
+            description: BIND logging channel declarations.
+            options:
+              name:
+                type: str
+                required: true
+                description: Channel name.
+              file:
+                type: str
+                required: false
+                description: Log file path.
+              severity:
+                type: str
+                required: false
+                description: Log severity.
+              file_options:
+                type: str
+                required: false
+                description: Native BIND file options such as versions and size.
+              print_time:
+                type: bool
+                required: false
+                description: Whether log entries include timestamps.
+              print_severity:
+                type: bool
+                required: false
+                description: Whether log entries include severity.
+              print_category:
+                type: bool
+                required: false
+                description: Whether log entries include category.
+          categories:
+            type: list
+            elements: dict
+            required: false
+            description: BIND logging category declarations.
+            options:
+              name:
+                type: str
+                required: true
+                description: Logging category name.
+              channels:
+                type: list
+                elements: str
+                required: true
+                description: Channel names used by this category.
+      bind_includes:
+        type: list
+        elements: str
+        required: false
+        default: []
+        description: Additional top-level BIND include files rendered after platform default
+          includes.
+      bind_dlz:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description: Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration.
+        options:
+          name:
+            type: str
+            required: true
+            description: DLZ block name.
+          statements:
+            type: list
+            elements: str
+            required: false
+            default: []
+            description: Native BIND statements rendered inside the DLZ block.
+          comment:
+            type: str
+            required: false
+            description: Comment rendered before the DLZ block.
+      bind_zones:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description: BIND zone declarations for primary, secondary, forward, RPZ, and related
+          zones.
+        options:
+          name:
+            type: str
+            required: true
+            description: Zone name.
+          class:
+            type: str
+            required: false
+            description: Optional DNS class, for example IN.
+          type:
+            type: str
+            required: false
+            description: Zone type such as primary, secondary, forward, hint, or static-stub.
+          file:
+            type: str
+            required: false
+            description: Zone file path or file name.
+          primaries:
+            type: list
+            elements: raw
+            required: false
+            description: Primaries block entries for secondary zones.
+          allow_update_forwarding:
+            type: list
+            elements: raw
+            required: false
+            description: allow-update-forwarding entries.
+          forward:
+            type: str
+            required: false
+            description: Zone forward policy.
+          forwarders:
+            type: list
+            elements: raw
+            required: false
+            description: Zone forwarder entries.
+          statements:
+            type: list
+            elements: str
+            required: false
+            description: Additional native BIND statements rendered inside the zone block.
+          comment:
+            type: str
+            required: false
+            description: Comment rendered before the zone block.
+      bind_extra_statements:
+        type: list
+        elements: str
+        required: false
+        default: []
+        description: Additional complete top-level BIND statements for unsupported edge
+          cases.
+      bind_zone_definitions:
+        type: list
+        elements: dict
+        required: false
+        description:
+          - Managed authoritative forward or reverse zone files.
+          - Reverse zones use the same template with PTR records.
+        options:
+          name:
+            type: str
+            required: true
+            description: DNS zone name.
+          file:
+            type: str
+            required: true
+            description:
+              - Destination zone file path.
+              - Relative paths are resolved below the platform BIND directory.
+          ttl:
+            type: str
+            required: false
+            default: 1h
+            description: Default TTL for the zone file.
+          origin:
+            type: str
+            required: false
+            description: Optional $ORIGIN value.
+          primary:
+            type: str
+            required: true
+            description: Primary nameserver used in the SOA record.
+          email:
+            type: str
+            required: true
+            description: SOA responsible mailbox in DNS zone format.
+          serial:
+            type: int
+            required: false
+            default: 1
+            description: SOA serial number.
+          refresh:
+            type: str
+            required: false
+            default: 1h
+            description: SOA refresh interval.
+          retry:
+            type: str
+            required: false
+            default: 15m
+            description: SOA retry interval.
+          expire:
+            type: str
+            required: false
+            default: 1w
+            description: SOA expire interval.
+          minimum:
+            type: str
+            required: false
+            default: 1d
+            description: SOA minimum TTL.
+          records:
+            type: list
+            elements: dict
+            required: false
+            default: []
+            description: DNS records for the zone.
+            options:
+              name:
+                type: str
+                required: true
+                description: Record owner name.
+              type:
+                type: str
+                required: true
+                description: DNS record type.
+              ttl:
+                type: str
+                required: false
+                description: Record TTL.
+              class:
+                type: str
+                required: false
+                description: Optional DNS class, for example IN.
+              data:
+                type: str
+                required: true
+                description: Record data.

@@ -1,3 +1,39 @@
 ---
-# role: jomrr.bind
+# role: bind
 # file: tasks/zone.yml
+
+- name: "BIND | Create zone file directories"
+  ansible.builtin.file:
+    path: "{{ __bind_zone_file | dirname }}"
+    state: directory
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0755"
+  vars:
+    __bind_zone_file: >-
+      {{ __bind_zone.file if __bind_zone.file.startswith('/') else
+         __bind_dir ~ '/' ~ __bind_zone.file }}
+  loop: "{{ bind_zone_definitions }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+
+- name: "BIND | Generate zone {{ __bind_zone.name }}"
+  ansible.builtin.template:
+    src: "zone.j2"
+    dest: "{{ __bind_zone_file }}"
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0640"
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+  vars:
+    __bind_zone_file: >-
+      {{ __bind_zone.file if __bind_zone.file.startswith('/') else
+         __bind_dir ~ '/' ~ __bind_zone.file }}
+  loop: "{{ bind_zone_definitions }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  notify:
+    - "BIND | Validate configuration"
+    - "BIND | Restart service"
