@@ -96,7 +96,8 @@ changes notify the restart handler.
 - Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
 - Platform default includes are rendered automatically before additional `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
-- Forward and reverse zone files use `bind_zone_definitions`; reverse zones use PTR records in the same template.
+- Managed forward and reverse zone files use absolute paths in `bind_zone_definitions`.
+- Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
 - Samba database and DLZ module lifecycle stay outside the role.
@@ -189,12 +190,12 @@ Enable a local response policy zone for DNSBL-style filtering.
         bind_zones:
           - name: rpz.local
             type: primary
-            file: zones/db.rpz.local
+            file: /var/named/zones/db.rpz.local
             statements:
               - allow-query { localhost; }
         bind_zone_definitions:
           - name: rpz.local
-            file: zones/db.rpz.local
+            file: /var/named/zones/db.rpz.local
             primary: ns1.rpz.local.
             email: hostmaster.rpz.local.
             records:
@@ -330,10 +331,10 @@ Configure an authoritative primary zone and render the zone file.
           - name: example.com
             class: IN
             type: primary
-            file: zones/db.example.com
+            file: /var/named/zones/db.example.com
         bind_zone_definitions:
           - name: example.com
-            file: zones/db.example.com
+            file: /var/named/zones/db.example.com
             primary: ns1.example.com.
             email: hostmaster.example.com.
             records:
@@ -344,7 +345,7 @@ Configure an authoritative primary zone and render the zone file.
                 type: A
                 data: 192.0.2.53
           - name: 2.0.192.in-addr.arpa
-            file: zones/db.2.0.192.in-addr.arpa
+            file: /var/named/zones/db.2.0.192.in-addr.arpa
             primary: ns1.example.com.
             email: hostmaster.example.com.
             records:
@@ -393,4 +394,4 @@ Configure an authoritative secondary zone.
 This project is licensed under the MIT License.
 See [LICENSE](LICENSE) for the full license text.
 
-Copyright (c) 2024 Jonas Mauer.
+Copyright (c) 2024-2026 Jonas Mauer.

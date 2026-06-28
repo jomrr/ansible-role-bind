@@ -1,0 +1,308 @@
+---
+# role: bind
+# file: molecule/multi/molecule.yml
+
+dependency:
+  name: "galaxy"
+driver:
+  name: "podman"
+provisioner:
+  name: "ansible"
+  config_options:
+    defaults:
+      forks: 8
+      interpreter_python: "auto_silent"
+      allow_world_readable_tmpfiles: true
+      callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
+      callback_result_format: "yaml"
+      remote_tmp: "/tmp/.ansible/tmp"
+    ssh_connection:
+      pipelining: true
+  log: true
+  playbooks:
+    converge: "../resources/playbooks/converge.yml"
+    verify: "verify.yml"
+  inventory:
+    group_vars:
+      all:
+        bind_multi_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
+        bind_tsig_keys:
+          - name: "ddns"
+            algorithm: "hmac-sha256"
+            secret: "{{ bind_multi_tsig_secret }}"
+        bind_options:
+          - name: "listen-on"
+            arguments: "port 53"
+            entries:
+              - "127.0.0.1"
+              - "{{ bind_multi_ip }}"
+          - name: "listen-on-v6"
+            arguments: "port 53"
+            entries:
+              - "none"
+          - name: "recursion"
+            value: "no"
+          - name: "allow-query"
+            entries:
+              - "any"
+          - name: "allow-recursion"
+            entries:
+              - "none"
+          - name: "allow-transfer"
+            entries:
+              - "none"
+          - name: "dnssec-validation"
+            value: "no"
+          - name: "minimal-responses"
+            value: "yes"
+          - name: "version"
+            value: "none"
+      bind_multi_primary:
+        bind_zones:
+          - name: "example.com"
+            class: "IN"
+            type: "primary"
+            file: "{{ bind_multi_zone_file }}"
+            statements:
+              - "allow-update { key ddns; }"
+              - "allow-transfer { {{ bind_multi_secondary_ip }}; }"
+              - "also-notify { {{ bind_multi_secondary_ip }}; }"
+              - "notify yes"
+        bind_zone_definitions:
+          - name: "example.com"
+            file: "{{ bind_multi_zone_file }}"
+            dynamic: true
+            primary: "ns1.example.com."
+            email: "hostmaster.example.com."
+            records:
+              - name: "@"
+                type: "NS"
+                data: "ns1.example.com."
+              - name: "@"
+                type: "NS"
+                data: "ns2.example.com."
+              - name: "ns1"
+                type: "A"
+                data: "{{ bind_multi_primary_ip }}"
+              - name: "ns2"
+                type: "A"
+                data: "{{ bind_multi_secondary_ip }}"
+      bind_multi_secondary:
+        bind_primaries:
+          - name: "example-primary"
+            entries:
+              - "{{ bind_multi_primary_ip }}"
+        bind_zones:
+          - name: "example.com"
+            class: "IN"
+            type: "secondary"
+            primaries:
+              - "\"example-primary\""
+            file: "{{ bind_multi_zone_file }}"
+            allow_update_forwarding:
+              - "key ddns"
+    host_vars:
+      almalinux-latest-bind-primary:
+        bind_multi_ip: "172.29.253.10"
+        bind_multi_primary_ip: "172.29.253.10"
+        bind_multi_secondary_ip: "172.29.253.11"
+        bind_multi_update_ip: "192.0.2.10"
+        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
+      almalinux-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.11"
+        bind_multi_primary_ip: "172.29.253.10"
+        bind_multi_secondary_ip: "172.29.253.11"
+        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
+      debian-latest-bind-primary:
+        bind_multi_ip: "172.29.253.20"
+        bind_multi_primary_ip: "172.29.253.20"
+        bind_multi_secondary_ip: "172.29.253.21"
+        bind_multi_update_ip: "192.0.2.20"
+        bind_multi_zone_file: "/var/cache/bind/db.example.com"
+      debian-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.21"
+        bind_multi_primary_ip: "172.29.253.20"
+        bind_multi_secondary_ip: "172.29.253.21"
+        bind_multi_zone_file: "/var/cache/bind/db.example.com"
+      fedora-latest-bind-primary:
+        bind_multi_ip: "172.29.253.30"
+        bind_multi_primary_ip: "172.29.253.30"
+        bind_multi_secondary_ip: "172.29.253.31"
+        bind_multi_update_ip: "192.0.2.30"
+        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
+      fedora-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.31"
+        bind_multi_primary_ip: "172.29.253.30"
+        bind_multi_secondary_ip: "172.29.253.31"
+        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
+      opensuse-leap-latest-bind-primary:
+        bind_multi_ip: "172.29.253.40"
+        bind_multi_primary_ip: "172.29.253.40"
+        bind_multi_secondary_ip: "172.29.253.41"
+        bind_multi_update_ip: "192.0.2.40"
+        bind_multi_zone_file: "/var/lib/named/dyn/db.example.com"
+      opensuse-leap-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.41"
+        bind_multi_primary_ip: "172.29.253.40"
+        bind_multi_secondary_ip: "172.29.253.41"
+        bind_multi_zone_file: "/var/lib/named/dyn/db.example.com"
+      opensuse-tumbleweed-latest-bind-primary:
+        bind_multi_ip: "172.29.253.50"
+        bind_multi_primary_ip: "172.29.253.50"
+        bind_multi_secondary_ip: "172.29.253.51"
+        bind_multi_update_ip: "192.0.2.50"
+        bind_multi_zone_file: "/var/lib/named/dyn/db.example.com"
+      opensuse-tumbleweed-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.51"
+        bind_multi_primary_ip: "172.29.253.50"
+        bind_multi_secondary_ip: "172.29.253.51"
+        bind_multi_zone_file: "/var/lib/named/dyn/db.example.com"
+      ubuntu-latest-bind-primary:
+        bind_multi_ip: "172.29.253.60"
+        bind_multi_primary_ip: "172.29.253.60"
+        bind_multi_secondary_ip: "172.29.253.61"
+        bind_multi_update_ip: "192.0.2.60"
+        bind_multi_zone_file: "/var/cache/bind/db.example.com"
+      ubuntu-latest-bind-secondary:
+        bind_multi_ip: "172.29.253.61"
+        bind_multi_primary_ip: "172.29.253.60"
+        bind_multi_secondary_ip: "172.29.253.61"
+        bind_multi_zone_file: "/var/cache/bind/db.example.com"
+verifier:
+  name: "ansible"
+scenario:
+  name: "multi"
+platforms:
+  - name: "almalinux-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-almalinux:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    subnet: "172.29.253.0/24"
+    ip: "172.29.253.10"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_almalinux"
+  - name: "almalinux-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-almalinux:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.11"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_almalinux"
+  - name: "debian-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-debian:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.20"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_debian"
+  - name: "debian-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-debian:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.21"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_debian"
+  - name: "fedora-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-fedora:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.30"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_fedora"
+  - name: "fedora-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-fedora:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.31"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_fedora"
+  - name: "opensuse-leap-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-opensuse-leap:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.40"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_opensuse_leap"
+  - name: "opensuse-leap-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-opensuse-leap:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.41"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_opensuse_leap"
+  - name: "opensuse-tumbleweed-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-opensuse-tumbleweed:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.50"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_opensuse_tumbleweed"
+  - name: "opensuse-tumbleweed-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-opensuse-tumbleweed:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.51"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_opensuse_tumbleweed"
+  - name: "ubuntu-latest-bind-primary"
+    image: "docker.io/jomrr/molecule-ubuntu:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.60"
+    groups:
+      - "bind_multi"
+      - "bind_multi_primary"
+      - "bind_multi_ubuntu"
+  - name: "ubuntu-latest-bind-secondary"
+    image: "docker.io/jomrr/molecule-ubuntu:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-multi"
+    ip: "172.29.253.61"
+    groups:
+      - "bind_multi"
+      - "bind_multi_secondary"
+      - "bind_multi_ubuntu"

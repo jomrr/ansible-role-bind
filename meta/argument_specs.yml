@@ -259,9 +259,14 @@ argument_specs:
           file:
             type: str
             required: true
+            description: Absolute destination zone file path.
+          dynamic:
+            type: bool
+            required: false
+            default: false
             description:
-              - Destination zone file path.
-              - Relative paths are resolved below the platform BIND directory.
+              - Whether the zone file is writable by the platform BIND service user.
+              - Dynamic zones support DDNS updates and journal writes.
           ttl:
             type: str
             required: false
