@@ -52,6 +52,15 @@ The following variables are part of the public role interface.
 | `bind_acls` | `list` | `false` |  | Named BIND ACL declarations. |
 | `bind_primaries` | `list` | `false` | [] | Named BIND primaries lists for secondary zones. |
 | `bind_controls` | `list` | `false` | [] | Native BIND controls entries rendered inside a controls block. |
+| `bind_option_directory` | `raw` | `false` |  | BIND directory option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_managed_keys_directory` | `raw` | `false` |  | BIND managed-keys-directory option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_dump_file` | `raw` | `false` |  | BIND dump-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_memstatistics_file` | `raw` | `false` |  | BIND memstatistics-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_recursing_file` | `raw` | `false` |  | BIND recursing-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_secroots_file` | `raw` | `false` |  | BIND secroots-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_statistics_file` | `raw` | `false` |  | BIND statistics-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_pid_file` | `raw` | `false` |  | BIND pid-file option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
+| `bind_option_session_keyfile` | `raw` | `false` |  | BIND session-keyfile option override.<br>Undefined uses the package-native platform default.<br>Empty or null omits the option. |
 | `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after platform path defaults. |
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
@@ -94,6 +103,7 @@ changes notify the restart handler.
 
 - The main API follows BIND's own top-level blocks.
 - Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
+- Package-native path options are used by default and can be overridden with `bind_option_*` variables.
 - Platform default includes are rendered automatically before additional `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
 - Managed forward and reverse zone files use absolute paths in `bind_zone_definitions`.

@@ -70,6 +70,69 @@ argument_specs:
         required: false
         default: []
         description: Native BIND controls entries rendered inside a controls block.
+      bind_option_directory:
+        type: raw
+        required: false
+        description:
+          - BIND directory option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_managed_keys_directory:
+        type: raw
+        required: false
+        description:
+          - BIND managed-keys-directory option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_dump_file:
+        type: raw
+        required: false
+        description:
+          - BIND dump-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_memstatistics_file:
+        type: raw
+        required: false
+        description:
+          - BIND memstatistics-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_recursing_file:
+        type: raw
+        required: false
+        description:
+          - BIND recursing-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_secroots_file:
+        type: raw
+        required: false
+        description:
+          - BIND secroots-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_statistics_file:
+        type: raw
+        required: false
+        description:
+          - BIND statistics-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_pid_file:
+        type: raw
+        required: false
+        description:
+          - BIND pid-file option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
+      bind_option_session_keyfile:
+        type: raw
+        required: false
+        description:
+          - BIND session-keyfile option override.
+          - Undefined uses the package-native platform default.
+          - Empty or null omits the option.
       bind_options:
         type: list
         elements: dict

@@ -32,9 +32,50 @@ bind_controls: []
 # bind_controls:
 #   - inet 127.0.0.1 port 953 allow { 127.0.0.1; } read-only yes
 
+# BIND directory option override.
+# Undefined uses the package-native platform default.
+# bind_option_directory: /srv/named
+
+# BIND managed-keys-directory option override.
+# Undefined uses the package-native platform default.
+# bind_option_managed_keys_directory: /srv/named/dynamic
+
+# BIND dump-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_dump_file: /var/log/named/dump.db
+
+# BIND memstatistics-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_memstatistics_file: /var/log/named/mem_stats.txt
+
+# BIND recursing-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_recursing_file: /var/log/named/recursing
+
+# BIND secroots-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_secroots_file: /var/log/named/secroots
+
+# BIND statistics-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_statistics_file: /var/log/named/stats
+
+# BIND pid-file option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_pid_file: /run/named/named.pid
+
+# BIND session-keyfile option override.
+# Undefined uses the package-native platform default.
+# Use an empty value to omit the option on platforms where it is not desired.
+# bind_option_session_keyfile: /run/named/session.key
+
 # Ordered statements rendered inside the BIND options block.
-# Platform path defaults are rendered before these public option statements.
-# Values and entries are native BIND fragments.
 bind_options:
   - name: "listen-on"
     arguments: "port 53"

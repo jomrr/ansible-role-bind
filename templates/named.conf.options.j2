@@ -26,7 +26,7 @@ controls {
 
 {% endif %}
 options {
-{% for option in (__bind_options | default([])) + bind_options %}
+{% for option in __bind_options + __bind_platform_options + bind_options %}
 {% if option.include is defined and option.include %}
     include "{{ option.include }}";
 {% elif option.raw is defined %}
@@ -46,7 +46,13 @@ options {
 {% endfor %}
     };
 {% elif option.value is defined %}
+{% if option.value is not none and option.value | string | length > 0 %}
+{% if option.quote is defined and option.quote %}
+    {{ option.name }} "{{ option.value }}";
+{% else %}
     {{ option.name }} {{ option.value }};
+{% endif %}
+{% endif %}
 {% endif %}
 {% endfor %}
 };

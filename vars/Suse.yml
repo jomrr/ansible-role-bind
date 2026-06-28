@@ -56,26 +56,9 @@ __bind_config_files:
 # Zone files directory for bind
 __bind_dir: "/var/lib/named"
 
-# Platform-specific options rendered before public bind_options.
-__bind_options:
-  - name: "directory"
-    value: '"{{ __bind_dir }}"'
-  - name: "managed-keys-directory"
-    value: '"{{ __bind_managed_keys_dir }}"'
-  - name: "dump-file"
-    value: '"{{ __bind_data_dir }}/cache_dump.db"'
-  - name: "memstatistics-file"
-    value: '"{{ __bind_data_dir }}/named_mem_stats.txt"'
-  - name: "recursing-file"
-    value: '"{{ __bind_data_dir }}/named.recursing"'
-  - name: "secroots-file"
-    value: '"{{ __bind_data_dir }}/named.secroots"'
-  - name: "statistics-file"
-    value: '"{{ __bind_data_dir }}/named_stats.txt"'
-  - name: "pid-file"
-    value: '"{{ __bind_run_dir }}/named.pid"'
-  - name: "session-keyfile"
-    value: '"{{ __bind_run_dir }}/session.key"'
+# openSUSE crypto policy include rendered inside the options block.
+__bind_platform_options:
+  - include: "/etc/crypto-policies/back-ends/bind.config"
 
 # Default included config files
 __bind_includes: []
@@ -92,25 +75,13 @@ __bind_data_dir: "/var/lib/named/data"
 # Managed keys directory
 __bind_managed_keys_dir: "/var/lib/named/dyn"
 
-# Directories required by the rendered configuration.
-__bind_directories:
-  - path: "{{ __bind_conf_dir }}"
-    owner: root
-    group: "{{ __bind_group }}"
-    mode: "0755"
-  - path: "{{ __bind_run_dir }}"
-    owner: "{{ __bind_user }}"
-    group: "{{ __bind_group }}"
-    mode: "0755"
-  - path: "{{ __bind_data_dir }}"
-    owner: "{{ __bind_user }}"
-    group: "{{ __bind_group }}"
-    mode: "0755"
-  - path: "{{ __bind_managed_keys_dir }}"
-    owner: "{{ __bind_user }}"
-    group: "{{ __bind_group }}"
-    mode: "0755"
-  - path: "{{ __bind_log_dir }}"
-    owner: "{{ __bind_user }}"
-    group: "{{ __bind_group }}"
-    mode: "0755"
+# Native BIND option defaults from openSUSE bind packages.
+__bind_default_option_directory: "/var/lib/named"
+__bind_default_option_managed_keys_directory: "/var/lib/named/dyn/"
+__bind_default_option_dump_file: "/var/log/named/dump.db"
+__bind_default_option_memstatistics_file:
+__bind_default_option_recursing_file:
+__bind_default_option_secroots_file:
+__bind_default_option_statistics_file: "/var/log/named/stats"
+__bind_default_option_pid_file:
+__bind_default_option_session_keyfile:
