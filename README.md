@@ -55,6 +55,7 @@ The following variables are part of the public role interface.
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
 | `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
 | `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
+| `bind_qname_minimization` | `str` | `false` | `strict` | QNAME minimization mode for the recursive resolver.<br>Strict mode follows the minimization algorithm without fallback to normal query mode. |
 | `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option. |
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
