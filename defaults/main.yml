@@ -193,11 +193,20 @@ bind_dlz: []
 bind_zones: []
 # bind_zones:
 #   - name: example.com
+#     comment: main forward zone
 #     class: IN
 #     type: secondary
 #     primaries:
 #       - '"samba-dlz"'
 #     file: slaves/db.example.com
+#     allow_update_forwarding:
+#       - any
+#   - name: example.com
+#     class: IN
+#     type: primary
+#     file: /var/named/zones/db.example.com
+#     statements:
+#       - allow-update { key ddns; }
 #   - name: example.com
 #     class: IN
 #     type: primary
