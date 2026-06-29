@@ -33,7 +33,6 @@
     loop_var: __bind_tsig_key
     label: "{{ __bind_tsig_key.name }}"
   no_log: true
-  when: bind_tsig_keys | length > 0
   notify: restart
 
 - name: "BIND | Configure zone files"
@@ -42,7 +41,6 @@
   loop_control:
     loop_var: __bind_zone_file
     label: "{{ __bind_zone_file.name }}"
-  when: bind_zone_files | length > 0
 
 - name: "BIND | Generate configuration files"
   ansible.builtin.template:
