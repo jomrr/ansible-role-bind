@@ -6,7 +6,7 @@
 bind_tsig_keys: []
 # bind_tsig_keys:
 #   - name: ddns
-#     algorithm: hmac-sha256
+#     algorithm: "hmac-sha256"
 #     secret: vault_secret
 
 # Named ACL declarations.
@@ -179,7 +179,6 @@ bind_zone_files: []
 # bind_zone_files:
 #   - name: example.com
 #     file: /var/named/zones/db.example.com
-#     dynamic: false
 #     primary: ns1.example.com
 #     email: hostmaster.example.com
 #     records:
@@ -191,3 +190,38 @@ bind_zone_files: []
 #     email: hostmaster.example.com
 #     records:
 #       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }
+
+# Default ownership mode for managed zone files.
+bind_zone_file_dynamic: false
+# bind_zone_file_dynamic: true
+
+# Default TTL for managed zone files.
+bind_zone_file_ttl: "1h"
+# bind_zone_file_ttl: 2h
+
+# Default SOA serial for managed zone files.
+bind_zone_file_serial: 1
+# bind_zone_file_serial: 2024062901
+
+# Default SOA refresh interval for managed zone files.
+bind_zone_file_refresh: "1h"
+# bind_zone_file_refresh: 2h
+
+# Default SOA retry interval for managed zone files.
+bind_zone_file_retry: "15m"
+# bind_zone_file_retry: 30m
+
+# Default SOA expire interval for managed zone files.
+bind_zone_file_expire: "1w"
+# bind_zone_file_expire: 2w
+
+# Default SOA minimum TTL for managed zone files.
+bind_zone_file_minimum: "1d"
+# bind_zone_file_minimum: 12h
+
+# Default DNS records for managed zone files.
+bind_zone_file_records: []
+# bind_zone_file_records:
+#   - name: "@"
+#     type: NS
+#     data: ns1.example.com.

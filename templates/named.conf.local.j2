@@ -12,9 +12,11 @@ include "{{ include }}";
 // {{ dlz.comment }}
 {% endif %}
 dlz "{{ dlz.name }}" {
-{% for statement in dlz.statements | default([]) %}
+{% if dlz.statements is defined %}
+{% for statement in dlz.statements %}
     {{ statement }};
 {% endfor %}
+{% endif %}
 };
 
 {% endfor %}
@@ -41,9 +43,11 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
 {% if zone.forwarders is defined %}
     forwarders { {% for entry in zone.forwarders %}{{ entry }}; {% endfor %}};
 {% endif %}
-{% for statement in zone.statements | default([]) %}
+{% if zone.statements is defined %}
+{% for statement in zone.statements %}
     {{ statement }};
 {% endfor %}
+{% endif %}
 };
 
 {% endfor %}

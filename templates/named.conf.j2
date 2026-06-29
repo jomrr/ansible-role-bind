@@ -95,7 +95,7 @@ logging {
 };
 
 {% endif %}
-{% for zone in __bind_platform_zones | default([]) %}
+{% for zone in __bind_platform_zones %}
 {% if zone.comment is defined %}
 // {{ zone.comment }}
 {% endif %}
@@ -118,13 +118,15 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
 {% if zone.forwarders is defined %}
     forwarders { {% for entry in zone.forwarders %}{{ entry }}; {% endfor %}};
 {% endif %}
-{% for statement in zone.statements | default([]) %}
+{% if zone.statements is defined %}
+{% for statement in zone.statements %}
     {{ statement }};
 {% endfor %}
+{% endif %}
 };
 
 {% endfor %}
-{% for include in __bind_includes | default([]) %}
+{% for include in __bind_includes %}
 include "{{ include }}";
 {% endfor %}
 include "{{ __bind_local_file }}";

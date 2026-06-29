@@ -26,8 +26,8 @@ argument_specs:
             description: TSIG key name and key file stem.
           algorithm:
             type: str
-            required: false
-            description: TSIG algorithm, for example hmac-sha256.
+            required: true
+            description: TSIG algorithm used for the key, for example hmac-sha256.
           secret:
             type: str
             required: false
@@ -330,11 +330,14 @@ argument_specs:
             description:
               - Whether the zone file is writable by the platform BIND service user.
               - Dynamic zones support DDNS updates and journal writes.
+              - Uses bind_zone_file_dynamic when omitted.
           ttl:
             type: str
             required: false
             default: 1h
-            description: Default TTL for the zone file.
+            description:
+              - Default TTL for the zone file.
+              - Uses bind_zone_file_ttl when omitted.
           origin:
             type: str
             required: false
@@ -351,33 +354,45 @@ argument_specs:
             type: int
             required: false
             default: 1
-            description: SOA serial number.
+            description:
+              - SOA serial number.
+              - Uses bind_zone_file_serial when omitted.
           refresh:
             type: str
             required: false
             default: 1h
-            description: SOA refresh interval.
+            description:
+              - SOA refresh interval.
+              - Uses bind_zone_file_refresh when omitted.
           retry:
             type: str
             required: false
             default: 15m
-            description: SOA retry interval.
+            description:
+              - SOA retry interval.
+              - Uses bind_zone_file_retry when omitted.
           expire:
             type: str
             required: false
             default: 1w
-            description: SOA expire interval.
+            description:
+              - SOA expire interval.
+              - Uses bind_zone_file_expire when omitted.
           minimum:
             type: str
             required: false
             default: 1d
-            description: SOA minimum TTL.
+            description:
+              - SOA minimum TTL.
+              - Uses bind_zone_file_minimum when omitted.
           records:
             type: list
             elements: dict
             required: false
             default: []
-            description: DNS records for the zone.
+            description:
+              - DNS records for the zone.
+              - Uses bind_zone_file_records when omitted.
             options:
               name:
                 type: str
@@ -399,3 +414,65 @@ argument_specs:
                 type: str
                 required: true
                 description: Record data.
+      bind_zone_file_dynamic:
+        type: bool
+        required: false
+        default: false
+        description: Default ownership mode for managed zone files.
+      bind_zone_file_ttl:
+        type: str
+        required: false
+        default: 1h
+        description: Default TTL for managed zone files.
+      bind_zone_file_serial:
+        type: int
+        required: false
+        default: 1
+        description: Default SOA serial for managed zone files.
+      bind_zone_file_refresh:
+        type: str
+        required: false
+        default: 1h
+        description: Default SOA refresh interval for managed zone files.
+      bind_zone_file_retry:
+        type: str
+        required: false
+        default: 15m
+        description: Default SOA retry interval for managed zone files.
+      bind_zone_file_expire:
+        type: str
+        required: false
+        default: 1w
+        description: Default SOA expire interval for managed zone files.
+      bind_zone_file_minimum:
+        type: str
+        required: false
+        default: 1d
+        description: Default SOA minimum TTL for managed zone files.
+      bind_zone_file_records:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description: Default DNS records for managed zone files.
+        options:
+          name:
+            type: str
+            required: true
+            description: Record owner name.
+          type:
+            type: str
+            required: true
+            description: DNS record type.
+          ttl:
+            type: str
+            required: false
+            description: Record TTL.
+          class:
+            type: str
+            required: false
+            description: Optional DNS class, for example IN.
+          data:
+            type: str
+            required: true
+            description: Record data.

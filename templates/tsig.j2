@@ -2,6 +2,6 @@
 // {{ template_destpath }}
 
 key "{{ item.name }}" {
-    algorithm {{ item.algorithm | default("hmac-sha256") }};
+    algorithm {{ item.algorithm }};
     secret "{{ item.secret }}";
 };

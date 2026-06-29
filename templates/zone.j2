@@ -1,17 +1,17 @@
 ; vim: set tabstop=4,shiftwidth=4,expandtabs,ft=bindzone
 ; {{ template_destpath }}
 
-$TTL {{ __bind_zone.ttl | default('1h') }}
+$TTL {{ __bind_zone.ttl if __bind_zone.ttl is defined else bind_zone_file_ttl }}
 {% if __bind_zone.origin is defined %}
 $ORIGIN {{ __bind_zone.origin }}
 {% endif %}
 @ IN SOA {{ __bind_zone.primary }} {{ __bind_zone.email }} (
-    {{ __bind_zone.serial | default(1) }}
-    {{ __bind_zone.refresh | default('1h') }}
-    {{ __bind_zone.retry | default('15m') }}
-    {{ __bind_zone.expire | default('1w') }}
-    {{ __bind_zone.minimum | default('1d') }}
+    {{ __bind_zone.serial if __bind_zone.serial is defined else bind_zone_file_serial }}
+    {{ __bind_zone.refresh if __bind_zone.refresh is defined else bind_zone_file_refresh }}
+    {{ __bind_zone.retry if __bind_zone.retry is defined else bind_zone_file_retry }}
+    {{ __bind_zone.expire if __bind_zone.expire is defined else bind_zone_file_expire }}
+    {{ __bind_zone.minimum if __bind_zone.minimum is defined else bind_zone_file_minimum }}
 )
-{% for record in __bind_zone.records | default([]) %}
+{% for record in (__bind_zone.records if __bind_zone.records is defined else bind_zone_file_records) %}
 {{ record.name }}{% if record.ttl is defined %} {{ record.ttl }}{% endif %}{% if record.class is defined %} {{ record.class }}{% endif %} {{ record.type }} {{ record.data }}
 {% endfor %}
