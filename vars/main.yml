@@ -7,3 +7,6 @@ __bind_checkconf_command: "named-checkconf %s"
 
 # Native validation command for managed authoritative zone files.
 __bind_checkzone_command: "named-checkzone"
+
+# Native SOA serial marker used by managed zone files.
+__bind_zone_serial_regexp: '(?m)^([ \t]*)([0-9]+)([ \t]*;[ \t]*[Ss]erial[ \t]*)$'

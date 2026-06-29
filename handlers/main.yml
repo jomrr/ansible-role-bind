@@ -5,8 +5,8 @@
 - name: "BIND | Update zone serials"
   ansible.builtin.replace:
     path: "{{ __bind_zone_file.file }}"
-    regexp: '^(\s*)[0-9]+(\s*;\s*serial\s*)$'
-    replace: '\g<1>{{ ansible_facts.date_time.epoch }}\g<2>'
+    regexp: "{{ __bind_zone_serial_regexp }}"
+    replace: '\g<1>{{ ansible_facts.date_time.epoch }}\g<3>'
     validate: "{{ __bind_checkzone_command }} {{ __bind_zone_file.name }} %s"
   loop: "{{ bind_zone_files }}"
   loop_control:

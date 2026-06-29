@@ -16,7 +16,7 @@
       {{
         __bind_zone_existing.stdout
         | default('', true)
-        | regex_search('([0-9]+)\s*;\s*[Ss]erial', '\1')
+        | regex_search(__bind_zone_serial_regexp, '\2')
         | default([ansible_facts.date_time.epoch], true)
         | first
       }}
