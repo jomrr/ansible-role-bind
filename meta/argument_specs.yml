@@ -202,6 +202,8 @@ argument_specs:
           - Ordered BIND option statements rendered after package-native platform options.
           - Entries with the same name as package-native options replace those native options.
           - Empty values omit the matching native option.
+          - Use a rate-limit entry for BIND response rate limiting instead of a role-specific
+            RRL schema.
         options:
           name:
             type: str

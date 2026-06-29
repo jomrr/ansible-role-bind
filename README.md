@@ -56,7 +56,7 @@ The following variables are part of the public role interface.
 | `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
 | `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
 | `bind_qname_minimization` | `str` | `false` | `strict` | QNAME minimization mode for the recursive resolver.<br>Strict mode follows the minimization algorithm without fallback to normal query mode. |
-| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option. |
+| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option.<br>Use a rate-limit entry for BIND response rate limiting instead of a role-specific RRL schema. |
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
@@ -110,6 +110,7 @@ changes notify the restart handler.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
+- Use a `rate-limit` entry in `bind_options` for BIND response rate limiting.
 - Samba database and DLZ module lifecycle stay outside the role.
 
 ## Supported Platforms
@@ -178,6 +179,33 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             entries:
               - 1.1.1.1
               - 9.9.9.9
+```
+### Authoritative response rate limiting
+
+Configure BIND response rate limiting through the native options block.
+
+```yaml
+---
+- name: Configure authoritative BIND with response rate limiting
+  hosts: bind
+  gather_facts: true
+  roles:
+    - role: jomrr.bind
+      vars:
+        bind_options:
+          - name: recursion
+            value: "no"
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
 ```
 ### DNSBL with RPZ
 
@@ -394,6 +422,7 @@ Configure an authoritative secondary zone.
 ## References
 
 - [BIND 9 Documentation](https://bind9.readthedocs.io/en/latest/)
+- [BIND 9 Response Rate Limiting](https://bind9.readthedocs.io/en/latest/reference.html#namedconf-statement-rate-limit)
 
 ## Author
 
