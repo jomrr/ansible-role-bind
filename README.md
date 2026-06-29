@@ -16,9 +16,11 @@ changes.
 
 - ISC BIND packages through platform-specific package lists
 - Main BIND configuration file
-- TSIG key files
-- ACL, primaries, controls, options, logging, include, DLZ, and zone clauses
-- Managed authoritative forward and reverse zone files
+- TSIG key files from provided key material
+- ACL, primaries, controls, options, logging, include, and DLZ clauses
+- Primary, secondary, forward, RPZ, and related zone declarations
+- TSIG-protected zone transfer and DDNS configuration through native BIND statements
+- Managed authoritative forward and reverse zone files with SOA serial updates
 - Zone-level BIND update-policy rules
 - BIND service handler for configuration changes
 
@@ -26,10 +28,8 @@ changes.
 
 - Firewall policy
 - DNSSEC key lifecycle
-- Dynamic DNS update operations
-- Samba AD database content for BIND_DLZ
-- TSIG secret generation or rotation
-- Multi-server primary/secondary orchestration
+- TLS certificate and private key lifecycle
+- Automatic TSIG key material generation
 
 ## Requirements
 
@@ -110,11 +110,12 @@ changes notify the restart handler.
 - Managed forward and reverse zone files use absolute paths in `bind_zone_files`.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
+- Primary and secondary relationships are declared through `bind_primaries`, `bind_tsig_keys`, `bind_options`, and `bind_zones`.
+- Changing provided TSIG key material updates rendered key files and restarts BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
 - Use a `rate-limit` entry in `bind_options` for BIND response rate limiting.
-- Samba database and DLZ module lifecycle stay outside the role.
 
 ## Supported Platforms
 
