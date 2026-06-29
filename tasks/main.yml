@@ -61,7 +61,7 @@
     - restart
 
 - name: "BIND | Enable and start service"
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: "{{ __bind_service_name }}"
     state: started
     enabled: true

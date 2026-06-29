@@ -20,7 +20,7 @@
   listen: validate
 
 - name: "BIND | Restart service"
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: "{{ __bind_service_name }}"
     state: restarted
   listen: restart
