@@ -26,8 +26,6 @@ provisioner:
     group_vars:
       all:
         bind_multi_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
-        bind_zones: []
-        bind_zone_files: []
         bind_tsig_keys:
           - name: "ddns"
             algorithm: "hmac-sha256"
@@ -51,15 +49,8 @@ provisioner:
           - name: "allow-recursion"
             entries:
               - "none"
-          - name: "allow-transfer"
-            entries:
-              - "none"
           - name: "dnssec-validation"
             value: "no"
-          - name: "minimal-responses"
-            value: "yes"
-          - name: "version"
-            value: "none"
       bind_multi_primary:
         bind_zones:
           - name: "example.com"

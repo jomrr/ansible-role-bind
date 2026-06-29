@@ -1,0 +1,69 @@
+---
+# role: bind
+# file: molecule/dnssec/molecule.yml
+
+dependency:
+  name: "galaxy"
+driver:
+  name: "podman"
+provisioner:
+  name: "ansible"
+  config_options:
+    defaults:
+      forks: 8
+      interpreter_python: "auto_silent"
+      allow_world_readable_tmpfiles: true
+      callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
+      callback_result_format: "yaml"
+      remote_tmp: "/tmp/.ansible/tmp"
+    ssh_connection:
+      pipelining: true
+  log: true
+  playbooks:
+    converge: "../resources/playbooks/converge.yml"
+    verify: "verify.yml"
+  inventory:
+    group_vars:
+      all:
+        bind_options:
+          - name: "forward"
+            value: "only"
+          - name: "forwarders"
+            entries: "{{ ansible_facts.dns.nameservers }}"
+          - name: "dnssec-validation"
+            value: "auto"
+verifier:
+  name: "ansible"
+scenario:
+  name: "dnssec"
+platforms:
+  - name: "almalinux-latest-bind"
+    image: "docker.io/jomrr/molecule-almalinux:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+  - name: "debian-latest-bind"
+    image: "docker.io/jomrr/molecule-debian:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+  - name: "fedora-latest-bind"
+    image: "docker.io/jomrr/molecule-fedora:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+  - name: "opensuse-leap-latest-bind"
+    image: "docker.io/jomrr/molecule-opensuse-leap:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+  - name: "opensuse-tumbleweed-latest-bind"
+    image: "docker.io/jomrr/molecule-opensuse-tumbleweed:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+  - name: "ubuntu-latest-bind"
+    image: "docker.io/jomrr/molecule-ubuntu:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: true
