@@ -19,13 +19,14 @@ changes.
 - TSIG key files
 - ACL, primaries, controls, options, logging, include, DLZ, and zone clauses
 - Managed authoritative forward and reverse zone files
+- Zone-level BIND update-policy rules
 - BIND service handler for configuration changes
 
 ### Not Managed
 
 - Firewall policy
 - DNSSEC key lifecycle
-- Dynamic DNS update policy
+- Dynamic DNS update operations
 - Samba AD database content for BIND_DLZ
 - TSIG secret generation or rotation
 - Multi-server primary/secondary orchestration
@@ -109,6 +110,8 @@ changes notify the restart handler.
 - Managed forward and reverse zone files use absolute paths in `bind_zone_files`.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
+- Use zone-level `update_policy` for granular DDNS permissions on primary zones.
+- Do not combine BIND `update-policy` and `allow-update` for the same zone.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
 - Use a `rate-limit` entry in `bind_options` for BIND response rate limiting.
 - Samba database and DLZ module lifecycle stay outside the role.
@@ -192,6 +195,10 @@ Configure BIND response rate limiting through the native options block.
   roles:
     - role: jomrr.bind
       vars:
+        bind_tsig_keys:
+          - name: ddns
+            algorithm: hmac-sha256
+            secret: "{{ vault_bind_ddns_secret }}"
         bind_options:
           - name: recursion
             value: "no"
@@ -370,6 +377,13 @@ Configure an authoritative primary zone and render the zone file.
             class: IN
             type: primary
             file: /var/named/zones/db.example.com
+            update_policy:
+              - action: grant
+                identity: ddns
+                match_type: name
+                name: update.example.com.
+                types:
+                  - A
         bind_zone_files:
           - name: example.com
             file: /var/named/zones/db.example.com
@@ -422,6 +436,7 @@ Configure an authoritative secondary zone.
 ## References
 
 - [BIND 9 Documentation](https://bind9.readthedocs.io/en/latest/)
+- [BIND 9 Dynamic Update Policies](https://bind9.readthedocs.io/en/latest/reference.html#namedconf-statement-update-policy)
 - [BIND 9 Response Rate Limiting](https://bind9.readthedocs.io/en/latest/reference.html#namedconf-statement-rate-limit)
 
 ## Author

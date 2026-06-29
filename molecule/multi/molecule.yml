@@ -66,8 +66,14 @@ provisioner:
             class: "IN"
             type: "primary"
             file: "{{ bind_multi_zone_file }}"
+            update_policy:
+              - action: "grant"
+                identity: "ddns"
+                match_type: "name"
+                name: "update.example.com."
+                types:
+                  - "A"
             statements:
-              - "allow-update { key ddns; }"
               - "allow-transfer { {{ bind_multi_secondary_ip }}; }"
               - "also-notify { {{ bind_multi_secondary_ip }}; }"
               - "notify yes"

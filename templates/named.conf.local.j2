@@ -37,6 +37,13 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
 {% if zone.allow_update_forwarding is defined %}
     allow-update-forwarding { {% for entry in zone.allow_update_forwarding %}{{ entry }}; {% endfor %}};
 {% endif %}
+{% if zone.update_policy is defined %}
+    update-policy {
+{% for rule in zone.update_policy %}
+        {{ rule.action }} {{ rule.identity }} {{ rule.match_type }}{% if rule.name is defined %} {{ rule.name }}{% endif %} {{ rule.types | join(' ') }};
+{% endfor %}
+    };
+{% endif %}
 {% if zone.forward is defined %}
     forward {{ zone.forward }};
 {% endif %}

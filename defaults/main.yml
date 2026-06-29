@@ -198,6 +198,18 @@ bind_zones: []
 #     primaries:
 #       - '"samba-dlz"'
 #     file: slaves/db.example.com
+#   - name: example.com
+#     class: IN
+#     type: primary
+#     file: /var/named/zones/db.example.com
+#     update_policy:
+#       - action: grant
+#         identity: ddns
+#         match_type: zonesub
+#         types:
+#           - A
+#           - AAAA
+#           - TXT
 
 # Additional complete top-level BIND statements for unsupported edge cases.
 bind_extra_statements: []

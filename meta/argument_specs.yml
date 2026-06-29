@@ -10,7 +10,7 @@ argument_specs:
       - Enables and starts the BIND service.
       - Restarts the BIND service after configuration changes.
       - The role interface models TSIG keys, encrypted listeners, BIND configuration blocks,
-        and zone declarations.
+        DDNS update policies, and zone declarations.
     options:
       bind_tsig_keys:
         type: list
@@ -347,6 +347,58 @@ argument_specs:
             elements: raw
             required: false
             description: allow-update-forwarding entries.
+          update_policy:
+            type: list
+            elements: dict
+            required: false
+            description:
+              - Granular BIND update-policy rules for primary zones.
+              - Do not combine update-policy and allow-update for the same zone.
+            options:
+              action:
+                type: str
+                required: true
+                choices:
+                  - grant
+                  - deny
+                description: Whether the rule grants or denies matching updates.
+              identity:
+                type: str
+                required: true
+                description: TSIG, SIG(0), or Kerberos identity matched by the rule.
+              match_type:
+                type: str
+                required: true
+                choices:
+                  - 6to4-self
+                  - external
+                  - krb5-self
+                  - krb5-selfsub
+                  - krb5-subdomain
+                  - krb5-subdomain-self-rhs
+                  - ms-self
+                  - ms-selfsub
+                  - ms-subdomain
+                  - ms-subdomain-self-rhs
+                  - name
+                  - self
+                  - selfsub
+                  - selfwild
+                  - subdomain
+                  - tcp-self
+                  - wildcard
+                  - zonesub
+                description: BIND update-policy rule type.
+              name:
+                type: str
+                required: false
+                description: Optional update-policy name field; omitted for rule types such
+                  as zonesub.
+              types:
+                type: list
+                elements: raw
+                required: true
+                description: DNS record types or BIND type limits affected by the rule.
           forward:
             type: str
             required: false
