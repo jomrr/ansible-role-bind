@@ -21,9 +21,20 @@
     name: "{{ __bind_packages }}"
     state: present
 
-- name: "BIND | Configure TSIG keys"
-  ansible.builtin.include_tasks: "tsig.yml"
+- name: "BIND | Generate TSIG key files"
+  ansible.builtin.template:
+    src: "tsig.j2"
+    dest: "{{ __bind_tsig_key_dir }}/{{ __bind_tsig_key.name }}.key"
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0640"
+  loop: "{{ bind_tsig_keys }}"
+  loop_control:
+    loop_var: __bind_tsig_key
+    label: "{{ __bind_tsig_key.name }}"
+  no_log: true
   when: bind_tsig_keys | length > 0
+  notify: restart
 
 - name: "BIND | Configure zone files"
   ansible.builtin.include_tasks: "zone.yml"
