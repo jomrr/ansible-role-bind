@@ -25,11 +25,10 @@ provisioner:
   inventory:
     group_vars:
       all:
-        bind_multi_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
-        bind_tsig_keys:
-          - name: "ddns"
-            algorithm: "hmac-sha256"
-            secret: "{{ bind_multi_tsig_secret }}"
+        bind_molecule_dnsbl_valid_domain: "example.org"
+        bind_molecule_dnsbl_blocked_domain: "example.com"
+        bind_molecule_dnsbl_blocked_address: "0.0.0.0"
+        bind_molecule_dnsbl_zone_name: "rpz.local"
         bind_options:
           - name: "listen-on"
             arguments: "port 53"
@@ -57,6 +56,13 @@ provisioner:
             value: "yes"
           - name: "version"
             value: "none"
+        bind_zones: []
+        bind_zone_files: []
+        bind_multi_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
+        bind_tsig_keys:
+          - name: "ddns"
+            algorithm: "hmac-sha256"
+            secret: "{{ bind_multi_tsig_secret }}"
       bind_multi_primary:
         bind_zones:
           - name: "example.com"
@@ -71,7 +77,6 @@ provisioner:
         bind_zone_files:
           - name: "example.com"
             file: "{{ bind_multi_zone_file }}"
-            dynamic: true
             primary: "ns1.example.com."
             email: "hostmaster.example.com."
             records:
@@ -102,6 +107,20 @@ provisioner:
             allow_update_forwarding:
               - "key ddns"
     host_vars:
+      bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      almalinux-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      debian-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/cache/bind/db.rpz.local"
+      fedora-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      opensuse-leap-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/lib/named/dyn/db.rpz.local"
+      opensuse-tumbleweed-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/lib/named/dyn/db.rpz.local"
+      ubuntu-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/cache/bind/db.rpz.local"
       almalinux-latest-bind-primary:
         bind_multi_ip: "172.29.253.10"
         bind_multi_primary_ip: "172.29.253.10"

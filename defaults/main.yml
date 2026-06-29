@@ -32,50 +32,9 @@ bind_controls: []
 # bind_controls:
 #   - inet 127.0.0.1 port 953 allow { 127.0.0.1; } read-only yes
 
-# BIND directory option override.
-# Undefined uses the package-native platform default.
-# bind_option_directory: /srv/named
-
-# BIND managed-keys-directory option override.
-# Undefined uses the package-native platform default.
-# bind_option_managed_keys_directory: /srv/named/dynamic
-
-# BIND dump-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_dump_file: /var/log/named/dump.db
-
-# BIND memstatistics-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_memstatistics_file: /var/log/named/mem_stats.txt
-
-# BIND recursing-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_recursing_file: /var/log/named/recursing
-
-# BIND secroots-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_secroots_file: /var/log/named/secroots
-
-# BIND statistics-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_statistics_file: /var/log/named/stats
-
-# BIND pid-file option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_pid_file: /run/named/named.pid
-
-# BIND session-keyfile option override.
-# Undefined uses the package-native platform default.
-# Use an empty value to omit the option on platforms where it is not desired.
-# bind_option_session_keyfile: /run/named/session.key
-
 # Ordered statements rendered inside the BIND options block.
+# Entries with the same name as package-native options replace those native
+# options. Empty values omit the matching native option.
 bind_options:
   - name: "listen-on"
     arguments: "port 53"
@@ -131,10 +90,7 @@ bind_options:
 
 # BIND logging channels and categories.
 bind_logging:
-  channels:
-    - name: "default_debug"
-      file: "data/named.run"
-      severity: "dynamic"
+  channels: []
   categories: []
 # bind_logging:
 #   channels:
@@ -190,10 +146,6 @@ bind_zone_files: []
 #     email: hostmaster.example.com
 #     records:
 #       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }
-
-# Default ownership mode for managed zone files.
-bind_zone_file_dynamic: false
-# bind_zone_file_dynamic: true
 
 # Default TTL for managed zone files.
 bind_zone_file_ttl: "1h"

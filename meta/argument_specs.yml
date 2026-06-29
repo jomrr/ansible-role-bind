@@ -70,75 +70,14 @@ argument_specs:
         required: false
         default: []
         description: Native BIND controls entries rendered inside a controls block.
-      bind_option_directory:
-        type: raw
-        required: false
-        description:
-          - BIND directory option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_managed_keys_directory:
-        type: raw
-        required: false
-        description:
-          - BIND managed-keys-directory option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_dump_file:
-        type: raw
-        required: false
-        description:
-          - BIND dump-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_memstatistics_file:
-        type: raw
-        required: false
-        description:
-          - BIND memstatistics-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_recursing_file:
-        type: raw
-        required: false
-        description:
-          - BIND recursing-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_secroots_file:
-        type: raw
-        required: false
-        description:
-          - BIND secroots-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_statistics_file:
-        type: raw
-        required: false
-        description:
-          - BIND statistics-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_pid_file:
-        type: raw
-        required: false
-        description:
-          - BIND pid-file option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
-      bind_option_session_keyfile:
-        type: raw
-        required: false
-        description:
-          - BIND session-keyfile option override.
-          - Undefined uses the package-native platform default.
-          - Empty or null omits the option.
       bind_options:
         type: list
         elements: dict
         required: false
         description:
-          - Ordered BIND option statements rendered after platform path defaults.
+          - Ordered BIND option statements rendered after package-native platform options.
+          - Entries with the same name as package-native options replace those native options.
+          - Empty values omit the matching native option.
         options:
           name:
             type: str
@@ -151,7 +90,7 @@ argument_specs:
           value:
             type: raw
             required: false
-            description: Scalar directive value.
+            description: Scalar directive value rendered as a native BIND fragment.
           entries:
             type: list
             elements: raw
@@ -323,14 +262,6 @@ argument_specs:
             type: str
             required: true
             description: Absolute destination zone file path.
-          dynamic:
-            type: bool
-            required: false
-            default: false
-            description:
-              - Whether the zone file is writable by the platform BIND service user.
-              - Dynamic zones support DDNS updates and journal writes.
-              - Uses bind_zone_file_dynamic when omitted.
           ttl:
             type: str
             required: false
@@ -414,11 +345,6 @@ argument_specs:
                 type: str
                 required: true
                 description: Record data.
-      bind_zone_file_dynamic:
-        type: bool
-        required: false
-        default: false
-        description: Default ownership mode for managed zone files.
       bind_zone_file_ttl:
         type: str
         required: false

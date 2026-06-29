@@ -2,7 +2,7 @@
 // {{ template_destpath }}
 
 {% for key in bind_tsig_keys %}
-include "{{ __bind_conf_dir }}/{{ key.name }}.key";
+include "{{ __bind_tsig_key_dir }}/{{ key.name }}.key";
 {% endfor %}
 {% if bind_tsig_keys %}
 
@@ -36,8 +36,9 @@ controls {
 };
 
 {% endif %}
+{% set __bind_public_option_names = bind_options | selectattr('name', 'defined') | map(attribute='name') | list %}
 options {
-{% for option in __bind_options + __bind_platform_options + bind_options %}
+{% for option in (__bind_options | rejectattr('name', 'in', __bind_public_option_names) | list) + __bind_platform_options + bind_options %}
 {% if option.include is defined and option.include %}
     include "{{ option.include }}";
 {% elif option.raw is defined %}
@@ -58,19 +59,17 @@ options {
     };
 {% elif option.value is defined %}
 {% if option.value is not none and option.value | string | length > 0 %}
-{% if option.quote is defined and option.quote %}
-    {{ option.name }} "{{ option.value }}";
-{% else %}
     {{ option.name }} {{ option.value }};
-{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}
 };
 
-{% if bind_logging.channels or bind_logging.categories %}
+{% set __bind_logging_channels = __bind_logging.channels + bind_logging.channels %}
+{% set __bind_logging_categories = __bind_logging.categories + bind_logging.categories %}
+{% if __bind_logging_channels or __bind_logging_categories %}
 logging {
-{% for channel in bind_logging.channels %}
+{% for channel in __bind_logging_channels %}
     channel {{ channel.name }} {
 {% if channel.file is defined %}
         file "{{ channel.file }}"{% if channel.file_options is defined %} {{ channel.file_options }}{% endif %};
@@ -89,7 +88,7 @@ logging {
 {% endif %}
     };
 {% endfor %}
-{% for category in bind_logging.categories %}
+{% for category in __bind_logging_categories %}
     category {{ category.name }} { {% for channel in category.channels %}{{ channel }}; {% endfor %}};
 {% endfor %}
 };

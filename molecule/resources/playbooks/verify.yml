@@ -6,7 +6,39 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: "Assert true"
-      ansible.builtin.assert:
-        that: "true"
-        fail_msg: "This should never fail"
+    - name: "BIND | Resolve valid domain through caching resolver"
+      ansible.builtin.command:
+        argv:
+          - dig
+          - "@127.0.0.1"
+          - "{{ bind_molecule_dnsbl_valid_domain }}"
+          - A
+          - +short
+          - +tries=1
+          - +time=2
+      register: __bind_verify_valid_query
+      changed_when: false
+      until:
+        - __bind_verify_valid_query.rc == 0
+        - __bind_verify_valid_query.stdout_lines | length > 0
+        - bind_molecule_dnsbl_blocked_address not in __bind_verify_valid_query.stdout_lines
+      retries: 10
+      delay: 2
+
+    - name: "BIND | Resolve DNSBL blocked domain through caching resolver"
+      ansible.builtin.command:
+        argv:
+          - dig
+          - "@127.0.0.1"
+          - "{{ bind_molecule_dnsbl_blocked_domain }}"
+          - A
+          - +short
+          - +tries=1
+          - +time=2
+      register: __bind_verify_blocked_query
+      changed_when: false
+      until:
+        - __bind_verify_blocked_query.rc == 0
+        - __bind_verify_blocked_query.stdout_lines == [bind_molecule_dnsbl_blocked_address]
+      retries: 10
+      delay: 2

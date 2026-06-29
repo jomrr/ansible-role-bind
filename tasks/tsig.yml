@@ -5,7 +5,7 @@
 - name: "BIND | Generate TSIG key files"
   ansible.builtin.template:
     src: "tsig.j2"
-    dest: "{{ __bind_conf_dir }}/{{ item.name }}.key"
+    dest: "{{ __bind_tsig_key_dir }}/{{ item.name }}.key"
     owner: root
     group: "{{ __bind_group }}"
     mode: "0640"

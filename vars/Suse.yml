@@ -14,8 +14,8 @@ __bind_service_name: "named"
 __bind_user: "named"
 __bind_group: "named"
 
-# Configuration directory for bind snippets
-__bind_conf_dir: "/etc/named.d"
+# Directory for managed TSIG key files.
+__bind_tsig_key_dir: "/etc/named.d"
 
 # Main configuration file for bind
 __bind_conf_file: "/etc/named.conf"
@@ -53,9 +53,6 @@ __bind_config_files:
     dest: "{{ __bind_conf_file }}"
     validate: "{{ __bind_checkconf_command }}"
 
-# Zone files directory for bind
-__bind_dir: "/var/lib/named"
-
 # openSUSE crypto policy include rendered inside the options block.
 __bind_platform_options:
   - include: "/etc/crypto-policies/back-ends/bind.config"
@@ -63,25 +60,18 @@ __bind_platform_options:
 # Default included config files
 __bind_includes: []
 
-# BIND log dir
-__bind_log_dir: "/var/log/named"
+# Native BIND option values from openSUSE bind packages.
+__bind_options:
+  - name: "directory"
+    value: '"/var/lib/named"'
+  - name: "managed-keys-directory"
+    value: '"/var/lib/named/dyn/"'
+  - name: "dump-file"
+    value: '"/var/log/named/dump.db"'
+  - name: "statistics-file"
+    value: '"/var/log/named/stats"'
 
-# Run dir
-__bind_run_dir: "/run/named"
-
-# BIND data dir
-__bind_data_dir: "/var/lib/named/data"
-
-# Managed keys directory
-__bind_managed_keys_dir: "/var/lib/named/dyn"
-
-# Native BIND option defaults from openSUSE bind packages.
-__bind_default_option_directory: "/var/lib/named"
-__bind_default_option_managed_keys_directory: "/var/lib/named/dyn/"
-__bind_default_option_dump_file: "/var/log/named/dump.db"
-__bind_default_option_memstatistics_file:
-__bind_default_option_recursing_file:
-__bind_default_option_secroots_file:
-__bind_default_option_statistics_file: "/var/log/named/stats"
-__bind_default_option_pid_file:
-__bind_default_option_session_keyfile:
+# openSUSE bind packages do not configure explicit logging by default.
+__bind_logging:
+  channels: []
+  categories: []

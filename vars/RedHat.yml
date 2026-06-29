@@ -15,8 +15,8 @@ __bind_service_name: "named"
 __bind_user: "named"
 __bind_group: "named"
 
-# Configuration directory for bind
-__bind_conf_dir: "/etc/named"
+# Directory for managed TSIG key files.
+__bind_tsig_key_dir: "/etc/named"
 
 # Main configuration file for bind
 __bind_conf_file: "/etc/named.conf"
@@ -42,9 +42,6 @@ __bind_config_files:
     dest: "{{ __bind_conf_file }}"
     validate: "{{ __bind_checkconf_command }}"
 
-# Zone files directory for bind
-__bind_dir: "/var/named"
-
 # Red Hat crypto policy include rendered inside the options block.
 __bind_platform_options:
   - include: "/etc/crypto-policies/back-ends/bind.config"
@@ -54,25 +51,31 @@ __bind_includes:
   - "/etc/named.rfc1912.zones"
   - "/etc/named.root.key"
 
-# BIND log dir
-__bind_log_dir: "/var/log/named"
+# Native BIND option values from Red Hat-family bind packages.
+__bind_options:
+  - name: "directory"
+    value: '"/var/named"'
+  - name: "managed-keys-directory"
+    value: '"/var/named/dynamic"'
+  - name: "dump-file"
+    value: '"/var/named/data/cache_dump.db"'
+  - name: "memstatistics-file"
+    value: '"/var/named/data/named_mem_stats.txt"'
+  - name: "recursing-file"
+    value: '"/var/named/data/named.recursing"'
+  - name: "secroots-file"
+    value: '"/var/named/data/named.secroots"'
+  - name: "statistics-file"
+    value: '"/var/named/data/named_stats.txt"'
+  - name: "pid-file"
+    value: '"/run/named/named.pid"'
+  - name: "session-keyfile"
+    value: '"/run/named/session.key"'
 
-# Run dir
-__bind_run_dir: "/run/named"
-
-# BIND data dir
-__bind_data_dir: "/var/named/data"
-
-# Managed keys directory
-__bind_managed_keys_dir: "/var/named/dynamic"
-
-# Native BIND option defaults from Red Hat-family bind packages.
-__bind_default_option_directory: "/var/named"
-__bind_default_option_managed_keys_directory: "/var/named/dynamic"
-__bind_default_option_dump_file: "/var/named/data/cache_dump.db"
-__bind_default_option_memstatistics_file: "/var/named/data/named_mem_stats.txt"
-__bind_default_option_recursing_file: "/var/named/data/named.recursing"
-__bind_default_option_secroots_file: "/var/named/data/named.secroots"
-__bind_default_option_statistics_file: "/var/named/data/named_stats.txt"
-__bind_default_option_pid_file: "/run/named/named.pid"
-__bind_default_option_session_keyfile: "/run/named/session.key"
+# Native BIND logging values from Red Hat-family bind packages.
+__bind_logging:
+  channels:
+    - name: "default_debug"
+      file: "data/named.run"
+      severity: "dynamic"
+  categories: []

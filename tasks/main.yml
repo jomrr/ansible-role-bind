@@ -21,15 +21,6 @@
     name: "{{ __bind_packages }}"
     state: present
 
-- name: "BIND | Create directories"
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: directory
-    owner: "{{ item.owner }}"
-    group: "{{ item.group }}"
-    mode: "{{ item.mode }}"
-  loop: "{{ __bind_directories }}"
-
 - name: "BIND | Configure TSIG keys"
   ansible.builtin.include_tasks: "tsig.yml"
   when: bind_tsig_keys | length > 0

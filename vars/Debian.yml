@@ -16,8 +16,8 @@ __bind_service_name: "bind9"
 __bind_user: "bind"
 __bind_group: "bind"
 
-# Configuration directory for bind
-__bind_conf_dir: "/etc/bind"
+# Directory for managed TSIG key files.
+__bind_tsig_key_dir: "/etc/bind"
 
 # Main configuration file for bind
 __bind_conf_file: "/etc/bind/named.conf"
@@ -50,31 +50,18 @@ __bind_config_files:
     dest: "{{ __bind_conf_file }}"
     validate: "{{ __bind_checkconf_command }}"
 
-# Zone files directory for bind
-__bind_dir: "/var/cache/bind"
-
 # Platform include files rendered by the standalone main configuration.
 __bind_includes: []
 
-# BIND log dir
-__bind_log_dir: "/var/log/bind"
+# Debian has no package-native option-level includes inside named.conf.options.
+__bind_platform_options: []
 
-# Run dir
-__bind_run_dir: "/var/run/named"
+# Native BIND option values from Debian and Ubuntu bind9 packages.
+__bind_options:
+  - name: "directory"
+    value: '"/var/cache/bind"'
 
-# BIND data dir
-__bind_data_dir: "/var/cache/bind/data"
-
-# Managed keys directory
-__bind_managed_keys_dir: "/var/cache/bind"
-
-# Native BIND option defaults from the Debian and Ubuntu bind9 packages.
-__bind_default_option_directory: "/var/cache/bind"
-__bind_default_option_managed_keys_directory:
-__bind_default_option_dump_file:
-__bind_default_option_memstatistics_file:
-__bind_default_option_recursing_file:
-__bind_default_option_secroots_file:
-__bind_default_option_statistics_file:
-__bind_default_option_pid_file:
-__bind_default_option_session_keyfile:
+# Debian and Ubuntu bind9 packages do not configure explicit logging by default.
+__bind_logging:
+  channels: []
+  categories: []

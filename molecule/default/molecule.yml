@@ -22,6 +22,81 @@ provisioner:
   playbooks:
     converge: "../resources/playbooks/converge.yml"
     verify: "../resources/playbooks/verify.yml"
+  inventory:
+    group_vars:
+      all:
+        bind_molecule_dnsbl_valid_domain: "example.org"
+        bind_molecule_dnsbl_blocked_domain: "example.com"
+        bind_molecule_dnsbl_blocked_address: "0.0.0.0"
+        bind_molecule_dnsbl_zone_name: "rpz.local"
+        bind_options:
+          - name: "listen-on"
+            arguments: "port 53"
+            entries:
+              - "127.0.0.1"
+          - name: "listen-on-v6"
+            arguments: "port 53"
+            entries:
+              - "none"
+          - name: "recursion"
+            value: "yes"
+          - name: "forward"
+            value: "only"
+          - name: "forwarders"
+            entries: "{{ ansible_facts.dns.nameservers }}"
+          - name: "allow-query"
+            entries:
+              - "local"
+          - name: "allow-query-cache"
+            entries:
+              - "local"
+          - name: "allow-recursion"
+            entries:
+              - "local"
+          - name: "allow-transfer"
+            entries:
+              - "none"
+          - name: "dnssec-validation"
+            value: "no"
+          - name: "response-policy"
+            entries:
+              - "zone \"{{ bind_molecule_dnsbl_zone_name }}\""
+          - name: "minimal-responses"
+            value: "yes"
+          - name: "version"
+            value: "none"
+        bind_zones:
+          - name: "{{ bind_molecule_dnsbl_zone_name }}"
+            class: "IN"
+            type: "primary"
+            file: "{{ bind_molecule_dnsbl_zone_file }}"
+        bind_zone_files:
+          - name: "{{ bind_molecule_dnsbl_zone_name }}"
+            file: "{{ bind_molecule_dnsbl_zone_file }}"
+            primary: "localhost."
+            email: "hostmaster.localhost."
+            records:
+              - name: "@"
+                type: "NS"
+                data: "localhost."
+              - name: "{{ bind_molecule_dnsbl_blocked_domain }}"
+                type: "A"
+                data: "{{ bind_molecule_dnsbl_blocked_address }}"
+    host_vars:
+      bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      almalinux-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      debian-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/cache/bind/db.rpz.local"
+      fedora-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/named/dynamic/db.rpz.local"
+      opensuse-leap-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/lib/named/dyn/db.rpz.local"
+      opensuse-tumbleweed-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/lib/named/dyn/db.rpz.local"
+      ubuntu-latest-bind:
+        bind_molecule_dnsbl_zone_file: "/var/cache/bind/db.rpz.local"
 verifier:
   name: "ansible"
 scenario:

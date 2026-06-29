@@ -2,40 +2,18 @@
 # role: bind
 # file: tasks/zone.yml
 
-- name: "BIND | Create zone directories"
-  ansible.builtin.file:
-    path: "{{ __bind_zone.file | dirname }}"
-    state: directory
-    owner: >-
-      {{
-        (__bind_zone.dynamic
-         if __bind_zone.dynamic is defined
-         else bind_zone_file_dynamic) | ternary(__bind_user, 'root')
-      }}
-    group: "{{ __bind_group }}"
-    mode: "0755"
-  loop: "{{ bind_zone_files }}"
-  loop_control:
-    loop_var: __bind_zone
-    label: "{{ __bind_zone.name }}"
-
-- name: "BIND | Generate zone file"
+- name: "BIND | Generate zone files"
   ansible.builtin.template:
     src: "zone.j2"
-    dest: "{{ __bind_zone.file }}"
-    owner: >-
-      {{
-        (__bind_zone.dynamic
-         if __bind_zone.dynamic is defined
-         else bind_zone_file_dynamic) | ternary(__bind_user, 'root')
-      }}
+    dest: "{{ __bind_zone_file.file }}"
+    owner: "{{ __bind_user }}"
     group: "{{ __bind_group }}"
     mode: "0640"
-    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone_file.name }} %s"
   loop: "{{ bind_zone_files }}"
   loop_control:
-    loop_var: __bind_zone
-    label: "{{ __bind_zone.name }}"
+    loop_var: __bind_zone_file
+    label: "{{ __bind_zone_file.name }}"
   notify:
     - "BIND | Validate configuration"
     - "BIND | Restart service"
