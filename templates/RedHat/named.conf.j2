@@ -1,0 +1,21 @@
+// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// {{ template_destpath }}
+
+{% include "common/tsig-includes.j2" %}
+{% include "common/acls.j2" %}
+{% include "common/primaries.j2" %}
+{% include "common/controls.j2" %}
+{% include "common/tls.j2" %}
+{% include "common/http.j2" %}
+{% include "common/options.j2" %}
+
+{% include "common/logging.j2" %}
+{% set __bind_render_zones = __bind_platform_zones %}
+{% include "common/zones.j2" %}
+{% for include in __bind_includes %}
+include "{{ include }}";
+{% endfor %}
+{% if __bind_includes %}
+
+{% endif %}
+{% include "common/role-statements.j2" %}

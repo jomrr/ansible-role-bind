@@ -1,0 +1,6 @@
+{% for key in bind_tsig_keys %}
+include "{{ __bind_tsig_key_dir }}/{{ key.name }}.key";
+{% endfor %}
+{% if bind_tsig_keys %}
+
+{% endif %}

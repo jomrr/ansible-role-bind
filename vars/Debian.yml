@@ -22,9 +22,6 @@ __bind_tsig_key_dir: "/etc/bind"
 # Main configuration file for bind
 __bind_conf_file: "/etc/bind/named.conf"
 
-# Debian keeps named.conf as an include-only entry point.
-__bind_main_config_style: "include"
-
 # Managed options include file.
 __bind_options_file: "/etc/bind/named.conf.options"
 
@@ -39,16 +36,6 @@ __bind_main_includes:
 
 # Debian keeps package-provided zones in included files.
 __bind_platform_zones: []
-
-# Configuration files managed by this role.
-__bind_config_files:
-  - src: "named.conf.options.j2"
-    dest: "{{ __bind_options_file }}"
-  - src: "named.conf.local.j2"
-    dest: "{{ __bind_local_file }}"
-  - src: "named.conf.j2"
-    dest: "{{ __bind_conf_file }}"
-    validate: "{{ __bind_checkconf_command }}"
 
 # Platform include files rendered by the standalone main configuration.
 __bind_includes: []

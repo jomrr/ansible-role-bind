@@ -21,26 +21,12 @@ __bind_tsig_key_dir: "/etc/named"
 # Main configuration file for bind
 __bind_conf_file: "/etc/named.conf"
 
-# Red Hat keeps options and logging in named.conf.
-__bind_main_config_style: "standalone"
-
-# Managed local include file.
-__bind_local_file: "/etc/named/named.conf.local"
-
 # Platform zones rendered into named.conf.
 __bind_platform_zones:
   - name: "."
     class: "IN"
     type: "hint"
     file: "/etc/named.ca"
-
-# Configuration files managed by this role.
-__bind_config_files:
-  - src: "named.conf.local.j2"
-    dest: "{{ __bind_local_file }}"
-  - src: "named.conf.j2"
-    dest: "{{ __bind_conf_file }}"
-    validate: "{{ __bind_checkconf_command }}"
 
 # Red Hat crypto policy include rendered inside the options block.
 __bind_platform_options:

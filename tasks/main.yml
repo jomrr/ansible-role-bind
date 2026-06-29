@@ -42,18 +42,38 @@
     loop_var: __bind_zone_file
     label: "{{ __bind_zone_file.name }}"
 
-- name: "BIND | Generate configuration files"
+- name: "BIND | Generate options configuration file"
   ansible.builtin.template:
-    src: "{{ __bind_config_file.src }}"
-    dest: "{{ __bind_config_file.dest }}"
+    src: "{{ ansible_facts.os_family }}/named.conf.options.j2"
+    dest: "{{ __bind_options_file }}"
     owner: root
     group: "{{ __bind_group }}"
     mode: "0640"
-    validate: "{{ __bind_config_file.validate | default(omit) }}"
-  loop: "{{ __bind_config_files }}"
-  loop_control:
-    loop_var: __bind_config_file
-    label: "{{ __bind_config_file.dest }}"
+  when: __bind_options_file is defined
+  notify:
+    - validate
+    - restart
+
+- name: "BIND | Generate local configuration file"
+  ansible.builtin.template:
+    src: "{{ ansible_facts.os_family }}/named.conf.local.j2"
+    dest: "{{ __bind_local_file }}"
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0640"
+  when: __bind_local_file is defined
+  notify:
+    - validate
+    - restart
+
+- name: "BIND | Generate main configuration file"
+  ansible.builtin.template:
+    src: "{{ ansible_facts.os_family }}/named.conf.j2"
+    dest: "{{ __bind_conf_file }}"
+    owner: root
+    group: "{{ __bind_group }}"
+    mode: "0640"
+    validate: "{{ __bind_checkconf_command }}"
   notify:
     - validate
     - restart

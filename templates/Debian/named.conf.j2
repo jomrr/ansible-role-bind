@@ -1,0 +1,7 @@
+// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
+// {{ template_destpath }}
+
+{% include "common/tsig-includes.j2" %}
+{% for include in __bind_main_includes %}
+include "{{ include }}";
+{% endfor %}

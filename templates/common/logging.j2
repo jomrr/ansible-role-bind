@@ -1,0 +1,29 @@
+{% set __bind_logging_channels = __bind_logging.channels + bind_logging.channels %}
+{% set __bind_logging_categories = __bind_logging.categories + bind_logging.categories %}
+{% if __bind_logging_channels or __bind_logging_categories %}
+logging {
+{% for channel in __bind_logging_channels %}
+    channel {{ channel.name }} {
+{% if channel.file is defined %}
+        file "{{ channel.file }}"{% if channel.file_options is defined %} {{ channel.file_options }}{% endif %};
+{% endif %}
+{% if channel.severity is defined %}
+        severity {{ channel.severity }};
+{% endif %}
+{% if channel.print_time is defined %}
+        print-time {{ 'yes' if channel.print_time else 'no' }};
+{% endif %}
+{% if channel.print_severity is defined %}
+        print-severity {{ 'yes' if channel.print_severity else 'no' }};
+{% endif %}
+{% if channel.print_category is defined %}
+        print-category {{ 'yes' if channel.print_category else 'no' }};
+{% endif %}
+    };
+{% endfor %}
+{% for category in __bind_logging_categories %}
+    category {{ category.name }} { {% for channel in category.channels %}{{ channel }}; {% endfor %}};
+{% endfor %}
+};
+
+{% endif %}

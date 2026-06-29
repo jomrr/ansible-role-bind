@@ -1,0 +1,14 @@
+{% for http in bind_http %}
+http {{ http.name }} {
+{% if http.endpoints is defined %}
+    endpoints { {% for endpoint in http.endpoints %}"{{ endpoint }}"; {% endfor %}};
+{% endif %}
+{% if http.listener_clients is defined %}
+    listener-clients {{ http.listener_clients }};
+{% endif %}
+{% if http.streams_per_connection is defined %}
+    streams-per-connection {{ http.streams_per_connection }};
+{% endif %}
+};
+
+{% endfor %}

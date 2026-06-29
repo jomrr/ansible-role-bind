@@ -1,0 +1,8 @@
+{% for primaries in bind_primaries %}
+primaries "{{ primaries.name }}" {
+{% for entry in primaries.entries %}
+    {{ entry }};
+{% endfor %}
+};
+
+{% endfor %}

@@ -1,0 +1,8 @@
+{% if bind_controls %}
+controls {
+{% for control in bind_controls %}
+    {{ control }};
+{% endfor %}
+};
+
+{% endif %}

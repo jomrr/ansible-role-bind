@@ -1,26 +1,4 @@
-// vim: set tabstop=4,shiftwidth=4,expandtabs,ft=conf
-// {{ template_destpath }}
-
-{% for include in bind_includes %}
-include "{{ include }}";
-{% endfor %}
-{% if bind_includes %}
-
-{% endif %}
-{% for dlz in bind_dlz %}
-{% if dlz.comment is defined %}
-// {{ dlz.comment }}
-{% endif %}
-dlz "{{ dlz.name }}" {
-{% if dlz.statements is defined %}
-{% for statement in dlz.statements %}
-    {{ statement }};
-{% endfor %}
-{% endif %}
-};
-
-{% endfor %}
-{% for zone in bind_zones %}
+{% for zone in __bind_render_zones %}
 {% if zone.comment is defined %}
 // {{ zone.comment }}
 {% endif %}
@@ -57,7 +35,4 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
 {% endif %}
 };
 
-{% endfor %}
-{% for statement in bind_extra_statements %}
-{{ statement }}
 {% endfor %}

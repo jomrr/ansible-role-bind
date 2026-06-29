@@ -76,8 +76,6 @@ The following variables are part of the public role interface.
 - `/etc/bind/named.conf.options` on Debian-family systems
 - `/etc/bind/named.conf.local` on Debian-family systems
 - `/etc/named.conf` on Red Hat-family and Suse systems
-- `/etc/named/named.conf.local` on Red Hat-family systems
-- `/etc/named.d/local.conf` on Suse systems
 - `<platform config directory>/<key-name>.key` when TSIG keys are configured
 - `<platform zone directory>/<zone-file>` when bind_zone_files is configured
 

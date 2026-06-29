@@ -1,0 +1,8 @@
+{% for acl in bind_acls %}
+acl "{{ acl.name }}" {
+{% for entry in acl.entries %}
+    {{ entry }};
+{% endfor %}
+};
+
+{% endfor %}

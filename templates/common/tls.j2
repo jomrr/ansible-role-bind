@@ -1,0 +1,32 @@
+{% for tls in bind_tls %}
+tls {{ tls.name }} {
+{% if tls.key_file is defined %}
+    key-file "{{ tls.key_file }}";
+{% endif %}
+{% if tls.cert_file is defined %}
+    cert-file "{{ tls.cert_file }}";
+{% endif %}
+{% if tls.ca_file is defined %}
+    ca-file "{{ tls.ca_file }}";
+{% endif %}
+{% if tls.dhparam_file is defined %}
+    dhparam-file "{{ tls.dhparam_file }}";
+{% endif %}
+{% if tls.ciphers is defined %}
+    ciphers "{{ tls.ciphers }}";
+{% endif %}
+{% if tls.protocols is defined %}
+    protocols { {% for protocol in tls.protocols %}{{ protocol }}; {% endfor %}};
+{% endif %}
+{% if tls.prefer_server_ciphers is defined %}
+    prefer-server-ciphers {{ 'yes' if tls.prefer_server_ciphers else 'no' }};
+{% endif %}
+{% if tls.remote_hostname is defined %}
+    remote-hostname "{{ tls.remote_hostname }}";
+{% endif %}
+{% if tls.session_tickets is defined %}
+    session-tickets {{ 'yes' if tls.session_tickets else 'no' }};
+{% endif %}
+};
+
+{% endfor %}

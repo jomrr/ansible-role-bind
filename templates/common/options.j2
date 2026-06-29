@@ -1,0 +1,36 @@
+{% set __bind_public_option_names = bind_options | selectattr('name', 'defined') | map(attribute='name') | list %}
+options {
+    qname-minimization {{ bind_qname_minimization }};
+{% for listener in bind_listeners %}
+    {{ listener.name }}{% if listener.port is defined %} port {{ listener.port }}{% endif %}{% if listener.tls is defined %} tls {{ listener.tls }}{% endif %}{% if listener.http is defined %} http {{ listener.http }}{% endif %} {
+{% for entry in listener.entries %}
+        {{ entry }};
+{% endfor %}
+    };
+{% endfor %}
+{% for option in (__bind_options | rejectattr('name', 'in', __bind_public_option_names) | list) + __bind_platform_options + bind_options %}
+{% if option.include is defined and option.include %}
+    include "{{ option.include }}";
+{% elif option.raw is defined %}
+{% if option.raw is string %}
+{% for line in option.raw.splitlines() %}
+    {{ line }}
+{% endfor %}
+{% else %}
+{% for line in option.raw %}
+    {{ line }}
+{% endfor %}
+{% endif %}
+{% elif option.entries is defined %}
+    {{ option.name }}{% if option.arguments is defined %} {{ option.arguments }}{% endif %} {
+{% for entry in option.entries %}
+        {{ entry }};
+{% endfor %}
+    };
+{% elif option.value is defined %}
+{% if option.value is not none and option.value | string | length > 0 %}
+    {{ option.name }} {{ option.value }};
+{% endif %}
+{% endif %}
+{% endfor %}
+};

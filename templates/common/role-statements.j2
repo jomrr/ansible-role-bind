@@ -1,0 +1,24 @@
+{% for include in bind_includes %}
+include "{{ include }}";
+{% endfor %}
+{% if bind_includes %}
+
+{% endif %}
+{% for dlz in bind_dlz %}
+{% if dlz.comment is defined %}
+// {{ dlz.comment }}
+{% endif %}
+dlz "{{ dlz.name }}" {
+{% if dlz.statements is defined %}
+{% for statement in dlz.statements %}
+    {{ statement }};
+{% endfor %}
+{% endif %}
+};
+
+{% endfor %}
+{% set __bind_render_zones = bind_zones %}
+{% include "common/zones.j2" %}
+{% for statement in bind_extra_statements %}
+{{ statement }}
+{% endfor %}
