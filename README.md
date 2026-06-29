@@ -65,7 +65,6 @@ The following variables are part of the public role interface.
 | `bind_zone_file_retry` | `str` | `false` | `15m` | Default SOA retry interval for managed zone files. |
 | `bind_zone_file_expire` | `str` | `false` | `1w` | Default SOA expire interval for managed zone files. |
 | `bind_zone_file_minimum` | `str` | `false` | `1d` | Default SOA minimum TTL for managed zone files. |
-| `bind_zone_file_records` | `list` | `false` | [] | Default DNS records for managed zone files. |
 
 ## Managed Files
 

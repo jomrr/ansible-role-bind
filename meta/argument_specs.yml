@@ -319,11 +319,8 @@ argument_specs:
           records:
             type: list
             elements: dict
-            required: false
-            default: []
-            description:
-              - DNS records for the zone.
-              - Uses bind_zone_file_records when omitted.
+            required: true
+            description: DNS records for the zone.
             options:
               name:
                 type: str
@@ -375,30 +372,3 @@ argument_specs:
         required: false
         default: 1d
         description: Default SOA minimum TTL for managed zone files.
-      bind_zone_file_records:
-        type: list
-        elements: dict
-        required: false
-        default: []
-        description: Default DNS records for managed zone files.
-        options:
-          name:
-            type: str
-            required: true
-            description: Record owner name.
-          type:
-            type: str
-            required: true
-            description: DNS record type.
-          ttl:
-            type: str
-            required: false
-            description: Record TTL.
-          class:
-            type: str
-            required: false
-            description: Optional DNS class, for example IN.
-          data:
-            type: str
-            required: true
-            description: Record data.

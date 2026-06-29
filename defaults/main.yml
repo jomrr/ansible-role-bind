@@ -170,10 +170,3 @@ bind_zone_file_expire: "1w"
 # Default SOA minimum TTL for managed zone files.
 bind_zone_file_minimum: "1d"
 # bind_zone_file_minimum: 12h
-
-# Default DNS records for managed zone files.
-bind_zone_file_records: []
-# bind_zone_file_records:
-#   - name: "@"
-#     type: NS
-#     data: ns1.example.com.

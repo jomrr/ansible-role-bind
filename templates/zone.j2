@@ -12,6 +12,6 @@ $ORIGIN {{ __bind_zone_file.origin }}
     {{ __bind_zone_file.expire if __bind_zone_file.expire is defined else bind_zone_file_expire }}
     {{ __bind_zone_file.minimum if __bind_zone_file.minimum is defined else bind_zone_file_minimum }}
 )
-{% for record in (__bind_zone_file.records if __bind_zone_file.records is defined else bind_zone_file_records) %}
+{% for record in __bind_zone_file.records %}
 {{ record.name }}{% if record.ttl is defined %} {{ record.ttl }}{% endif %}{% if record.class is defined %} {{ record.class }}{% endif %} {{ record.type }} {{ record.data }}
 {% endfor %}
