@@ -32,16 +32,17 @@ provisioner:
           - name: "ddns"
             algorithm: "hmac-sha256"
             secret: "{{ bind_multi_tsig_secret }}"
-        bind_options:
+        bind_listeners:
           - name: "listen-on"
-            arguments: "port 53"
+            port: 53
             entries:
               - "127.0.0.1"
               - "{{ bind_multi_ip }}"
           - name: "listen-on-v6"
-            arguments: "port 53"
+            port: 53
             entries:
               - "none"
+        bind_options:
           - name: "recursion"
             value: "no"
           - name: "allow-query"

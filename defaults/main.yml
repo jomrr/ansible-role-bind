@@ -32,18 +32,53 @@ bind_controls: []
 # bind_controls:
 #   - inet 127.0.0.1 port 953 allow { 127.0.0.1; } read-only yes
 
+# BIND TLS blocks referenced by encrypted listeners or TLS zone transfers.
+bind_tls: []
+# bind_tls:
+#   - name: resolver-tls
+#     cert_file: /etc/pki/tls/certs/named.crt
+#     key_file: /etc/pki/tls/private/named.key
+#     protocols:
+#       - TLSv1.3
+#       - TLSv1.2
+#     session_tickets: false
+
+# BIND HTTP blocks referenced by DNS-over-HTTPS listeners.
+bind_http: []
+# bind_http:
+#   - name: resolver-http
+#     endpoints:
+#       - /dns-query
+#     listener_clients: 100
+#     streams_per_connection: 100
+
+# BIND listener statements rendered inside the options block.
+bind_listeners:
+  - name: "listen-on"
+    port: 53
+    entries:
+      - "127.0.0.1"
+  - name: "listen-on-v6"
+    port: 53
+    entries:
+      - "none"
+# bind_listeners:
+#   - name: listen-on
+#     port: 853
+#     tls: resolver-tls
+#     entries:
+#       - any
+#   - name: listen-on
+#     port: 443
+#     tls: resolver-tls
+#     http: resolver-http
+#     entries:
+#       - any
+
 # Ordered statements rendered inside the BIND options block.
 # Entries with the same name as package-native options replace those native
 # options. Empty values omit the matching native option.
 bind_options:
-  - name: "listen-on"
-    arguments: "port 53"
-    entries:
-      - "127.0.0.1"
-  - name: "listen-on-v6"
-    arguments: "port 53"
-    entries:
-      - "none"
   - name: "recursion"
     value: "yes"
   - name: "allow-query"

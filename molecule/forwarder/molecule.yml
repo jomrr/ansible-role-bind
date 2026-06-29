@@ -29,15 +29,16 @@ provisioner:
         bind_molecule_dnsbl_blocked_domain: "example.com"
         bind_molecule_dnsbl_blocked_address: "0.0.0.0"
         bind_molecule_dnsbl_zone_name: "rpz.local"
-        bind_options:
+        bind_listeners:
           - name: "listen-on"
-            arguments: "port 53"
+            port: 53
             entries:
               - "127.0.0.1"
           - name: "listen-on-v6"
-            arguments: "port 53"
+            port: 53
             entries:
               - "none"
+        bind_options:
           - name: "recursion"
             value: "yes"
           - name: "forward"

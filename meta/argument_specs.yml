@@ -9,7 +9,8 @@ argument_specs:
       - Installs ISC BIND packages and renders the main BIND configuration.
       - Enables and starts the BIND service.
       - Restarts the BIND service after configuration changes.
-      - The role interface models TSIG keys, BIND configuration blocks, and zone declarations.
+      - The role interface models TSIG keys, encrypted listeners, BIND configuration blocks,
+        and zone declarations.
     options:
       bind_tsig_keys:
         type: list
@@ -70,6 +71,112 @@ argument_specs:
         required: false
         default: []
         description: Native BIND controls entries rendered inside a controls block.
+      bind_tls:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description:
+          - Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS
+            zone transfer configuration.
+        options:
+          name:
+            type: str
+            required: true
+            description: TLS block name referenced by listener or transfer statements.
+          key_file:
+            type: str
+            required: false
+            description: Private key file path rendered as key-file.
+          cert_file:
+            type: str
+            required: false
+            description: Certificate file path rendered as cert-file.
+          ca_file:
+            type: str
+            required: false
+            description: Certificate authority file path rendered as ca-file.
+          dhparam_file:
+            type: str
+            required: false
+            description: Diffie-Hellman parameters file path rendered as dhparam-file.
+          ciphers:
+            type: str
+            required: false
+            description: Native BIND ciphers value.
+          protocols:
+            type: list
+            elements: str
+            required: false
+            description: TLS protocol names rendered inside the protocols block.
+          prefer_server_ciphers:
+            type: bool
+            required: false
+            description: Whether server cipher preference is enabled.
+          remote_hostname:
+            type: str
+            required: false
+            description: Remote hostname used for TLS certificate verification.
+          session_tickets:
+            type: bool
+            required: false
+            description: Whether TLS session tickets are enabled.
+      bind_http:
+        type: list
+        elements: dict
+        required: false
+        default: []
+        description: Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners.
+        options:
+          name:
+            type: str
+            required: true
+            description: HTTP block name referenced by listener statements.
+          endpoints:
+            type: list
+            elements: str
+            required: false
+            description: HTTP endpoint paths, for example /dns-query.
+          listener_clients:
+            type: int
+            required: false
+            description: Maximum number of HTTP listener clients.
+          streams_per_connection:
+            type: int
+            required: false
+            description: Maximum number of HTTP streams per connection.
+      bind_listeners:
+        type: list
+        elements: dict
+        required: false
+        description:
+          - BIND listen-on or listen-on-v6 statements rendered inside the options block.
+          - Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS.
+        options:
+          name:
+            type: str
+            required: true
+            choices:
+              - listen-on
+              - listen-on-v6
+            description: Listener directive name.
+          port:
+            type: int
+            required: false
+            description: Listener port.
+          tls:
+            type: str
+            required: false
+            description: TLS block name used by DNS-over-TLS or DNS-over-HTTPS listeners.
+          http:
+            type: str
+            required: false
+            description: HTTP block name used by DNS-over-HTTPS listeners.
+          entries:
+            type: list
+            elements: raw
+            required: true
+            description: Address match list entries for the listener.
       bind_options:
         type: list
         elements: dict

@@ -25,8 +25,61 @@ controls {
 };
 
 {% endif %}
+{% for tls in bind_tls %}
+tls {{ tls.name }} {
+{% if tls.key_file is defined %}
+    key-file "{{ tls.key_file }}";
+{% endif %}
+{% if tls.cert_file is defined %}
+    cert-file "{{ tls.cert_file }}";
+{% endif %}
+{% if tls.ca_file is defined %}
+    ca-file "{{ tls.ca_file }}";
+{% endif %}
+{% if tls.dhparam_file is defined %}
+    dhparam-file "{{ tls.dhparam_file }}";
+{% endif %}
+{% if tls.ciphers is defined %}
+    ciphers "{{ tls.ciphers }}";
+{% endif %}
+{% if tls.protocols is defined %}
+    protocols { {% for protocol in tls.protocols %}{{ protocol }}; {% endfor %}};
+{% endif %}
+{% if tls.prefer_server_ciphers is defined %}
+    prefer-server-ciphers {{ 'yes' if tls.prefer_server_ciphers else 'no' }};
+{% endif %}
+{% if tls.remote_hostname is defined %}
+    remote-hostname "{{ tls.remote_hostname }}";
+{% endif %}
+{% if tls.session_tickets is defined %}
+    session-tickets {{ 'yes' if tls.session_tickets else 'no' }};
+{% endif %}
+};
+
+{% endfor %}
+{% for http in bind_http %}
+http {{ http.name }} {
+{% if http.endpoints is defined %}
+    endpoints { {% for endpoint in http.endpoints %}"{{ endpoint }}"; {% endfor %}};
+{% endif %}
+{% if http.listener_clients is defined %}
+    listener-clients {{ http.listener_clients }};
+{% endif %}
+{% if http.streams_per_connection is defined %}
+    streams-per-connection {{ http.streams_per_connection }};
+{% endif %}
+};
+
+{% endfor %}
 {% set __bind_public_option_names = bind_options | selectattr('name', 'defined') | map(attribute='name') | list %}
 options {
+{% for listener in bind_listeners %}
+    {{ listener.name }}{% if listener.port is defined %} port {{ listener.port }}{% endif %}{% if listener.tls is defined %} tls {{ listener.tls }}{% endif %}{% if listener.http is defined %} http {{ listener.http }}{% endif %} {
+{% for entry in listener.entries %}
+        {{ entry }};
+{% endfor %}
+    };
+{% endfor %}
 {% for option in (__bind_options | rejectattr('name', 'in', __bind_public_option_names) | list) + __bind_platform_options + bind_options %}
 {% if option.include is defined and option.include %}
     include "{{ option.include }}";
