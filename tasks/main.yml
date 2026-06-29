@@ -10,9 +10,7 @@
   vars:
     params:
       files:
-        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
         - "{{ ansible_facts.distribution }}.yml"
-        - "{{ ansible_facts.os_family }}-{{ ansible_facts.distribution_major_version }}.yml"
       paths:
         - "vars"
       skip: true
@@ -55,9 +53,6 @@
   notify:
     - "BIND | Validate configuration"
     - "BIND | Restart service"
-
-- name: "BIND | Flush handlers"
-  ansible.builtin.meta: flush_handlers
 
 - name: "BIND | Enable and start service"
   ansible.builtin.systemd:
