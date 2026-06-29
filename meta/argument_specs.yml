@@ -281,13 +281,6 @@ argument_specs:
             type: str
             required: true
             description: SOA responsible mailbox in DNS zone format.
-          serial:
-            type: int
-            required: false
-            default: 1
-            description:
-              - SOA serial number.
-              - Uses bind_zone_file_serial when omitted.
           refresh:
             type: str
             required: false
@@ -347,11 +340,6 @@ argument_specs:
         required: false
         default: 1h
         description: Default TTL for managed zone files.
-      bind_zone_file_serial:
-        type: int
-        required: false
-        default: 1
-        description: Default SOA serial for managed zone files.
       bind_zone_file_refresh:
         type: str
         required: false

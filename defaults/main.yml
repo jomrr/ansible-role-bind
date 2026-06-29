@@ -151,10 +151,6 @@ bind_zone_files: []
 bind_zone_file_ttl: "1h"
 # bind_zone_file_ttl: 2h
 
-# Default SOA serial for managed zone files.
-bind_zone_file_serial: 1
-# bind_zone_file_serial: 2024062901
-
 # Default SOA refresh interval for managed zone files.
 bind_zone_file_refresh: "1h"
 # bind_zone_file_refresh: 2h

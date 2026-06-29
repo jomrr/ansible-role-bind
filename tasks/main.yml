@@ -27,6 +27,10 @@
 
 - name: "BIND | Configure zone files"
   ansible.builtin.include_tasks: "zone.yml"
+  loop: "{{ bind_zone_files }}"
+  loop_control:
+    loop_var: __bind_zone_file
+    label: "{{ __bind_zone_file.name }}"
   when: bind_zone_files | length > 0
 
 - name: "BIND | Generate configuration files"
@@ -42,8 +46,8 @@
     loop_var: __bind_config_file
     label: "{{ __bind_config_file.dest }}"
   notify:
-    - "BIND | Validate configuration"
-    - "BIND | Restart service"
+    - validate
+    - restart
 
 - name: "BIND | Enable and start service"
   ansible.builtin.systemd:

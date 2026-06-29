@@ -2,11 +2,25 @@
 # role: bind
 # file: handlers/main.yml
 
+- name: "BIND | Update zone serials"
+  ansible.builtin.replace:
+    path: "{{ __bind_zone_file.file }}"
+    regexp: '^(\s*)[0-9]+(\s*;\s*serial\s*)$'
+    replace: '\g<1>{{ ansible_facts.date_time.epoch }}\g<2>'
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone_file.name }} %s"
+  loop: "{{ bind_zone_files }}"
+  loop_control:
+    loop_var: __bind_zone_file
+    label: "{{ __bind_zone_file.name }}"
+  listen: serial
+
 - name: "BIND | Validate configuration"
   ansible.builtin.command: "{{ __bind_checkconf_command | replace('%s', __bind_conf_file) }}"
   changed_when: false
+  listen: validate
 
 - name: "BIND | Restart service"
   ansible.builtin.systemd:
     name: "{{ __bind_service_name }}"
     state: restarted
+  listen: restart

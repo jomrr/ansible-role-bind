@@ -11,4 +11,4 @@
     mode: "0640"
   loop: "{{ bind_tsig_keys }}"
   no_log: true
-  notify: "BIND | Restart service"
+  notify: restart

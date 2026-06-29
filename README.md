@@ -60,7 +60,6 @@ The following variables are part of the public role interface.
 | `bind_extra_statements` | `list` | `false` | [] | Additional complete top-level BIND statements for unsupported edge cases. |
 | `bind_zone_files` | `list` | `false` |  | Managed authoritative forward or reverse zone files.<br>Reverse zones use the same template with PTR records. |
 | `bind_zone_file_ttl` | `str` | `false` | `1h` | Default TTL for managed zone files. |
-| `bind_zone_file_serial` | `int` | `false` | `1` | Default SOA serial for managed zone files. |
 | `bind_zone_file_refresh` | `str` | `false` | `1h` | Default SOA refresh interval for managed zone files. |
 | `bind_zone_file_retry` | `str` | `false` | `15m` | Default SOA retry interval for managed zone files. |
 | `bind_zone_file_expire` | `str` | `false` | `1w` | Default SOA expire interval for managed zone files. |

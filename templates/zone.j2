@@ -6,7 +6,7 @@ $TTL {{ __bind_zone_file.ttl if __bind_zone_file.ttl is defined else bind_zone_f
 $ORIGIN {{ __bind_zone_file.origin }}
 {% endif %}
 @ IN SOA {{ __bind_zone_file.primary }} {{ __bind_zone_file.email }} (
-    {{ __bind_zone_file.serial if __bind_zone_file.serial is defined else bind_zone_file_serial }}
+    {{ __bind_zone_serial }} ; serial
     {{ __bind_zone_file.refresh if __bind_zone_file.refresh is defined else bind_zone_file_refresh }}
     {{ __bind_zone_file.retry if __bind_zone_file.retry is defined else bind_zone_file_retry }}
     {{ __bind_zone_file.expire if __bind_zone_file.expire is defined else bind_zone_file_expire }}
