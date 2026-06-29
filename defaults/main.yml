@@ -9,11 +9,30 @@ bind_tsig_keys: []
 #     algorithm: "hmac-sha256"
 #     secret: vault_secret
 
-# Named ACL declarations.
+# Named ACL declarations. The bogons ACL is available for optional blackhole
+# use and excludes private, shared, and ULA ranges commonly used by local clients.
 bind_acls:
   - name: "local"
     entries:
       - "localhost"
+  - name: "bogons"
+    entries:
+      - "0.0.0.0/8"
+      - "127.0.0.0/8"
+      - "169.254.0.0/16"
+      - "192.0.2.0/24"
+      - "198.18.0.0/15"
+      - "198.51.100.0/24"
+      - "203.0.113.0/24"
+      - "224.0.0.0/4"
+      - "240.0.0.0/4"
+      - "::/128"
+      - "::1/128"
+      - "::ffff:0:0/96"
+      - "100::/64"
+      - "2001:db8::/32"
+      - "fe80::/10"
+      - "ff00::/8"
 # bind_acls:
 #   - name: dns-clients
 #     entries:
@@ -128,6 +147,9 @@ bind_options:
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1
+#   - name: blackhole
+#     entries:
+#       - bogons
 
 # BIND logging channels and categories.
 bind_logging:

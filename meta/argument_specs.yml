@@ -38,7 +38,11 @@ argument_specs:
         type: list
         elements: dict
         required: false
-        description: Named BIND ACL declarations.
+        description:
+          - Named BIND ACL declarations.
+          - The default includes local and bogons ACLs.
+          - The bogons ACL can be referenced from a blackhole option and excludes private,
+            shared, and ULA ranges commonly used by local clients.
         options:
           name:
             type: str

@@ -49,7 +49,7 @@ The following variables are part of the public role interface.
 | Name | Type | Required | Default | Description |
 | ---- | ---- | -------- | ------- | ----------- |
 | `bind_tsig_keys` | `list` | `false` | [] | TSIG key declarations included from the managed local BIND configuration.<br>Store real secrets in Ansible Vault. |
-| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations. |
+| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local and bogons ACLs.<br>The bogons ACL can be referenced from a blackhole option and excludes private, shared, and ULA ranges commonly used by local clients. |
 | `bind_primaries` | `list` | `false` | [] | Named BIND primaries lists for secondary zones. |
 | `bind_controls` | `list` | `false` | [] | Native BIND controls entries rendered inside a controls block. |
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
