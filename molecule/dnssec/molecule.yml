@@ -38,6 +38,8 @@ provisioner:
           - name: "allow-query-cache"
             entries:
               - "local"
+          - name: "recursive-clients"
+            value: 300
           - name: "fetches-per-server"
             value: "100 fail"
           - name: "fetches-per-zone"

@@ -131,6 +131,8 @@ bind_options:
     value: 50
   - name: "tcp-clients"
     value: 100
+  - name: "recursive-clients"
+    value: 300
   - name: "max-cache-size"
     value: "512M"
   - name: "max-cache-ttl"
@@ -162,6 +164,8 @@ bind_options:
 #   - name: allow-query-cache
 #     entries:
 #       - local
+#   - name: recursive-clients
+#     value: 300
 #   - name: fetches-per-server
 #     value: 100 fail
 #   - name: fetches-per-zone

@@ -95,6 +95,7 @@ changes notify the restart handler.
 
 - The default listener is limited to localhost.
 - Recursive defaults explicitly limit cache access to local clients.
+- Recursive defaults limit concurrent recursive clients.
 - Version, hostname, and server-id disclosure are disabled by default.
 - Recursive defaults deny answers that resolve names to the resolver's own addresses.
 - Recursive defaults limit outstanding fetches per upstream server and zone.
@@ -189,6 +190,8 @@ Allow local clients to query a recursive resolver with explicit upstream forward
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: recursive-clients
+            value: 300
           - name: fetches-per-server
             value: 100 fail
           - name: fetches-per-zone
@@ -254,6 +257,8 @@ Enable a local response policy zone for DNSBL-style filtering.
           - name: allow-query-cache
             entries:
               - local
+          - name: recursive-clients
+            value: 300
           - name: fetches-per-server
             value: 100 fail
           - name: fetches-per-zone
@@ -303,6 +308,8 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
           - name: allow-query-cache
             entries:
               - localhost
+          - name: recursive-clients
+            value: 300
           - name: fetches-per-server
             value: 100 fail
           - name: fetches-per-zone
@@ -379,6 +386,8 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
           - name: allow-recursion
             entries:
               - '"dns-clients"'
+          - name: recursive-clients
+            value: 300
           - name: fetches-per-server
             value: 100 fail
           - name: fetches-per-zone
