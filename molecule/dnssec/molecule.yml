@@ -32,6 +32,9 @@ provisioner:
             entries: "{{ ansible_facts.dns.nameservers }}"
           - name: "qname-minimization"
             value: "strict"
+          - name: "deny-answer-addresses"
+            entries:
+              - "my_addresses"
           - name: "dnssec-validation"
             value: "auto"
 verifier:

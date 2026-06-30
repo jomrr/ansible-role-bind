@@ -50,7 +50,7 @@ The following variables are part of the public role interface.
 | Name | Type | Required | Default | Description |
 | ---- | ---- | -------- | ------- | ----------- |
 | `bind_tsig_keys` | `list` | `false` | [] | TSIG key declarations included from the managed local BIND configuration.<br>Store real secrets in Ansible Vault. |
-| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local and bogons ACLs.<br>The bogons ACL can be referenced from a blackhole option and excludes private, shared, and ULA ranges commonly used by local clients. |
+| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local, my_addresses, and bogons ACLs.<br>The my_addresses ACL is referenced by the default deny-answer-addresses option for recursive resolver hardening.<br>The bogons ACL can be referenced from a blackhole option and excludes private, shared, and ULA ranges commonly used by local clients. |
 | `bind_primaries` | `list` | `false` | [] | Named BIND primaries lists for secondary zones. |
 | `bind_controls` | `list` | `false` | [] | Native BIND controls entries rendered inside a controls block. |
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
@@ -95,6 +95,7 @@ changes notify the restart handler.
 
 - The default listener is limited to localhost.
 - Version, hostname, and server-id disclosure are disabled by default.
+- Recursive defaults deny answers that resolve names to the resolver's own addresses.
 - Store TSIG secrets in Ansible Vault.
 
 ## Operational Notes
@@ -107,6 +108,7 @@ changes notify the restart handler.
 - Managed forward and reverse zone files use absolute paths in `bind_zone_files`.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
+- Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust `deny-answer-addresses` accordingly.
 - Primary and secondary relationships are declared through `bind_primaries`, `bind_tsig_keys`, `bind_options`, and `bind_zones`.
 - Changing provided TSIG key material updates rendered key files and restarts BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
@@ -156,6 +158,9 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             entries:
               - localhost
               - 192.0.2.0/24
+          - name: my_addresses
+            entries:
+              - localhost
         bind_options:
           - name: listen-on
             arguments: port 53
@@ -176,6 +181,9 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             value: "yes"
           - name: qname-minimization
             value: strict
+          - name: deny-answer-addresses
+            entries:
+              - my_addresses
           - name: forward
             value: only
           - name: forwarders
@@ -231,6 +239,9 @@ Enable a local response policy zone for DNSBL-style filtering.
             value: "yes"
           - name: qname-minimization
             value: strict
+          - name: deny-answer-addresses
+            entries:
+              - my_addresses
           - name: response-policy
             entries:
               - zone "rpz.local"
@@ -267,6 +278,9 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
             value: "yes"
           - name: qname-minimization
             value: strict
+          - name: deny-answer-addresses
+            entries:
+              - my_addresses
           - name: allow-query
             entries:
               - localhost
@@ -306,6 +320,9 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
               - 127.0.0.1
               - 192.168.254.20
               - 10.0.0.10
+          - name: my_addresses
+            entries:
+              - localhost
         bind_primaries:
           - name: samba-dlz
             entries:
@@ -327,6 +344,9 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
             value: "yes"
           - name: qname-minimization
             value: strict
+          - name: deny-answer-addresses
+            entries:
+              - my_addresses
           - name: allow-query
             entries:
               - '"dns-clients"'

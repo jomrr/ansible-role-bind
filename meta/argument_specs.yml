@@ -40,7 +40,9 @@ argument_specs:
         required: false
         description:
           - Named BIND ACL declarations.
-          - The default includes local and bogons ACLs.
+          - The default includes local, my_addresses, and bogons ACLs.
+          - The my_addresses ACL is referenced by the default deny-answer-addresses option
+            for recursive resolver hardening.
           - The bogons ACL can be referenced from a blackhole option and excludes private,
             shared, and ULA ranges commonly used by local clients.
         options:

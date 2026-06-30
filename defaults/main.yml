@@ -9,10 +9,14 @@ bind_tsig_keys: []
 #     algorithm: "hmac-sha256"
 #     secret: vault_secret
 
-# Named ACL declarations. The bogons ACL is available for optional blackhole
-# use and excludes private, shared, and ULA ranges commonly used by local clients.
+# Named ACL declarations. The my_addresses ACL is used by the default recursive
+# hardening options. The bogons ACL is available for optional blackhole use and
+# excludes private, shared, and ULA ranges commonly used by local clients.
 bind_acls:
   - name: "local"
+    entries:
+      - "localhost"
+  - name: "my_addresses"
     entries:
       - "localhost"
   - name: "bogons"
@@ -102,6 +106,9 @@ bind_options:
     value: "yes"
   - name: "qname-minimization"
     value: "strict"
+  - name: "deny-answer-addresses"
+    entries:
+      - "my_addresses"
   - name: "allow-query"
     entries:
       - "local"
@@ -142,6 +149,9 @@ bind_options:
 #     value: "yes"
 #   - name: qname-minimization
 #     value: strict
+#   - name: deny-answer-addresses
+#     entries:
+#       - my_addresses
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1
