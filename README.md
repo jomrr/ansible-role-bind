@@ -56,7 +56,7 @@ The following variables are part of the public role interface.
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
 | `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
 | `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
-| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option.<br>Use a rate-limit entry for BIND response rate limiting instead of a role-specific RRL schema. |
+| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option.<br>The default includes a rate-limit entry for BIND response rate limiting. |
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
@@ -100,6 +100,7 @@ changes notify the restart handler.
 - Recursive defaults deny answers that resolve names to the resolver's own addresses.
 - Recursive defaults blackhole bogon source addresses.
 - Recursive defaults limit outstanding fetches per upstream server and zone.
+- Response rate limiting is enabled by default.
 - Store TSIG secrets in Ansible Vault.
 
 ## Operational Notes
@@ -119,7 +120,7 @@ changes notify the restart handler.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
-- Use a `rate-limit` entry in `bind_options` for BIND response rate limiting.
+- Override the `rate-limit` entry in `bind_options` to tune BIND response rate limiting.
 
 ## Supported Platforms
 
@@ -217,6 +218,17 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             value: 100 fail
           - name: fetches-per-zone
             value: 200 fail
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
           - name: forward
             value: only
           - name: forwarders
@@ -287,6 +299,17 @@ Enable a local response policy zone for DNSBL-style filtering.
             value: 100 fail
           - name: fetches-per-zone
             value: 200 fail
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
           - name: response-policy
             entries:
               - zone "rpz.local"
@@ -341,6 +364,17 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
             value: 100 fail
           - name: fetches-per-zone
             value: 200 fail
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
         bind_dlz:
           - name: AD DNS Zone
             statements:
@@ -438,6 +472,17 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
             value: 100 fail
           - name: fetches-per-zone
             value: 200 fail
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
           - name: allow-transfer
             entries:
               - none
@@ -480,6 +525,17 @@ Configure an authoritative primary zone and render the zone file.
         bind_options:
           - name: recursion
             value: "no"
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
           - name: allow-transfer
             entries:
               - 192.0.2.54
@@ -535,6 +591,17 @@ Configure an authoritative secondary zone.
         bind_options:
           - name: recursion
             value: "no"
+          - name: rate-limit
+            entries:
+              - responses-per-second 5
+              - referrals-per-second 5
+              - nodata-per-second 5
+              - nxdomains-per-second 5
+              - errors-per-second 5
+              - all-per-second 20
+              - window 5
+              - slip 2
+              - qps-scale 250
         bind_zones:
           - name: example.com
             class: IN
