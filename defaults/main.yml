@@ -112,6 +112,9 @@ bind_options:
   - name: "allow-query"
     entries:
       - "local"
+  - name: "allow-query-cache"
+    entries:
+      - "local"
   - name: "allow-recursion"
     entries:
       - "local"
@@ -152,6 +155,9 @@ bind_options:
 #   - name: deny-answer-addresses
 #     entries:
 #       - my_addresses
+#   - name: allow-query-cache
+#     entries:
+#       - local
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1

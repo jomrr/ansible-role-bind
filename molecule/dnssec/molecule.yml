@@ -35,6 +35,9 @@ provisioner:
           - name: "deny-answer-addresses"
             entries:
               - "my_addresses"
+          - name: "allow-query-cache"
+            entries:
+              - "local"
           - name: "dnssec-validation"
             value: "auto"
 verifier:
