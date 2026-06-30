@@ -50,7 +50,7 @@ The following variables are part of the public role interface.
 | Name | Type | Required | Default | Description |
 | ---- | ---- | -------- | ------- | ----------- |
 | `bind_tsig_keys` | `list` | `false` | [] | TSIG key declarations included from the managed local BIND configuration.<br>Store real secrets in Ansible Vault. |
-| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local, my_addresses, and bogons ACLs.<br>The my_addresses ACL is referenced by the default deny-answer-addresses option for recursive resolver hardening.<br>The bogons ACL can be referenced from a blackhole option and excludes private, shared, and ULA ranges commonly used by local clients. |
+| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local, my_addresses, and bogons ACLs.<br>The my_addresses ACL is referenced by the default deny-answer-addresses option for recursive resolver hardening.<br>The bogons ACL is referenced by the default blackhole option and excludes loopback, private, shared, and ULA ranges commonly used by local clients. |
 | `bind_primaries` | `list` | `false` | [] | Named BIND primaries lists for secondary zones. |
 | `bind_controls` | `list` | `false` | [] | Native BIND controls entries rendered inside a controls block. |
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
@@ -98,6 +98,7 @@ changes notify the restart handler.
 - Recursive defaults limit concurrent recursive clients.
 - Version, hostname, and server-id disclosure are disabled by default.
 - Recursive defaults deny answers that resolve names to the resolver's own addresses.
+- Recursive defaults blackhole bogon source addresses.
 - Recursive defaults limit outstanding fetches per upstream server and zone.
 - Store TSIG secrets in Ansible Vault.
 
@@ -112,6 +113,7 @@ changes notify the restart handler.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust `deny-answer-addresses` accordingly.
+- Keep a `bogons` ACL when replacing `bind_acls`, or adjust `blackhole` accordingly.
 - Primary and secondary relationships are declared through `bind_primaries`, `bind_tsig_keys`, `bind_options`, and `bind_zones`.
 - Changing provided TSIG key material updates rendered key files and restarts BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
@@ -164,6 +166,22 @@ Allow local clients to query a recursive resolver with explicit upstream forward
           - name: my_addresses
             entries:
               - localhost
+          - name: bogons
+            entries:
+              - 0.0.0.0/8
+              - 169.254.0.0/16
+              - 192.0.2.0/24
+              - 198.18.0.0/15
+              - 198.51.100.0/24
+              - 203.0.113.0/24
+              - 224.0.0.0/4
+              - 240.0.0.0/4
+              - ::/128
+              - ::ffff:0:0/96
+              - 100::/64
+              - 2001:db8::/32
+              - fe80::/10
+              - ff00::/8
         bind_options:
           - name: listen-on
             arguments: port 53
@@ -190,6 +208,9 @@ Allow local clients to query a recursive resolver with explicit upstream forward
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: blackhole
+            entries:
+              - bogons
           - name: recursive-clients
             value: 300
           - name: fetches-per-server
@@ -254,6 +275,9 @@ Enable a local response policy zone for DNSBL-style filtering.
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: blackhole
+            entries:
+              - bogons
           - name: allow-query-cache
             entries:
               - local
@@ -302,6 +326,9 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: blackhole
+            entries:
+              - bogons
           - name: allow-query
             entries:
               - localhost
@@ -353,6 +380,22 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
           - name: my_addresses
             entries:
               - localhost
+          - name: bogons
+            entries:
+              - 0.0.0.0/8
+              - 169.254.0.0/16
+              - 192.0.2.0/24
+              - 198.18.0.0/15
+              - 198.51.100.0/24
+              - 203.0.113.0/24
+              - 224.0.0.0/4
+              - 240.0.0.0/4
+              - ::/128
+              - ::ffff:0:0/96
+              - 100::/64
+              - 2001:db8::/32
+              - fe80::/10
+              - ff00::/8
         bind_primaries:
           - name: samba-dlz
             entries:
@@ -377,6 +420,9 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: blackhole
+            entries:
+              - bogons
           - name: allow-query
             entries:
               - '"dns-clients"'

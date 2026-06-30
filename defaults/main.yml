@@ -10,8 +10,8 @@ bind_tsig_keys: []
 #     secret: vault_secret
 
 # Named ACL declarations. The my_addresses ACL is used by the default recursive
-# hardening options. The bogons ACL is available for optional blackhole use and
-# excludes private, shared, and ULA ranges commonly used by local clients.
+# hardening options. The bogons ACL is used by the default blackhole option and
+# excludes loopback, private, shared, and ULA ranges commonly used by local clients.
 bind_acls:
   - name: "local"
     entries:
@@ -22,7 +22,6 @@ bind_acls:
   - name: "bogons"
     entries:
       - "0.0.0.0/8"
-      - "127.0.0.0/8"
       - "169.254.0.0/16"
       - "192.0.2.0/24"
       - "198.18.0.0/15"
@@ -31,7 +30,6 @@ bind_acls:
       - "224.0.0.0/4"
       - "240.0.0.0/4"
       - "::/128"
-      - "::1/128"
       - "::ffff:0:0/96"
       - "100::/64"
       - "2001:db8::/32"
@@ -109,6 +107,9 @@ bind_options:
   - name: "deny-answer-addresses"
     entries:
       - "my_addresses"
+  - name: "blackhole"
+    entries:
+      - "bogons"
   - name: "allow-query"
     entries:
       - "local"
@@ -161,6 +162,9 @@ bind_options:
 #   - name: deny-answer-addresses
 #     entries:
 #       - my_addresses
+#   - name: blackhole
+#     entries:
+#       - bogons
 #   - name: allow-query-cache
 #     entries:
 #       - local
@@ -173,9 +177,6 @@ bind_options:
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1
-#   - name: blackhole
-#     entries:
-#       - bogons
 #   - name: rate-limit
 #     entries:
 #       - responses-per-second 5

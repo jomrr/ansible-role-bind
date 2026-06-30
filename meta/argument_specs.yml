@@ -43,8 +43,8 @@ argument_specs:
           - The default includes local, my_addresses, and bogons ACLs.
           - The my_addresses ACL is referenced by the default deny-answer-addresses option
             for recursive resolver hardening.
-          - The bogons ACL can be referenced from a blackhole option and excludes private,
-            shared, and ULA ranges commonly used by local clients.
+          - The bogons ACL is referenced by the default blackhole option and excludes loopback,
+            private, shared, and ULA ranges commonly used by local clients.
         options:
           name:
             type: str
