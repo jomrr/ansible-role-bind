@@ -38,6 +38,10 @@ provisioner:
           - name: "allow-query-cache"
             entries:
               - "local"
+          - name: "fetches-per-server"
+            value: "100 fail"
+          - name: "fetches-per-zone"
+            value: "200 fail"
           - name: "dnssec-validation"
             value: "auto"
 verifier:

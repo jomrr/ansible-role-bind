@@ -139,6 +139,10 @@ bind_options:
     value: 5
   - name: "max-recursion-queries"
     value: 50
+  - name: "fetches-per-server"
+    value: "100 fail"
+  - name: "fetches-per-zone"
+    value: "200 fail"
   - name: "hostname"
     value: "none"
   - name: "server-id"
@@ -158,6 +162,10 @@ bind_options:
 #   - name: allow-query-cache
 #     entries:
 #       - local
+#   - name: fetches-per-server
+#     value: 100 fail
+#   - name: fetches-per-zone
+#     value: 200 fail
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1

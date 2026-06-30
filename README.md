@@ -97,6 +97,7 @@ changes notify the restart handler.
 - Recursive defaults explicitly limit cache access to local clients.
 - Version, hostname, and server-id disclosure are disabled by default.
 - Recursive defaults deny answers that resolve names to the resolver's own addresses.
+- Recursive defaults limit outstanding fetches per upstream server and zone.
 - Store TSIG secrets in Ansible Vault.
 
 ## Operational Notes
@@ -188,6 +189,10 @@ Allow local clients to query a recursive resolver with explicit upstream forward
           - name: deny-answer-addresses
             entries:
               - my_addresses
+          - name: fetches-per-server
+            value: 100 fail
+          - name: fetches-per-zone
+            value: 200 fail
           - name: forward
             value: only
           - name: forwarders
@@ -249,6 +254,10 @@ Enable a local response policy zone for DNSBL-style filtering.
           - name: allow-query-cache
             entries:
               - local
+          - name: fetches-per-server
+            value: 100 fail
+          - name: fetches-per-zone
+            value: 200 fail
           - name: response-policy
             entries:
               - zone "rpz.local"
@@ -294,6 +303,10 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
           - name: allow-query-cache
             entries:
               - localhost
+          - name: fetches-per-server
+            value: 100 fail
+          - name: fetches-per-zone
+            value: 200 fail
         bind_dlz:
           - name: AD DNS Zone
             statements:
@@ -366,6 +379,10 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
           - name: allow-recursion
             entries:
               - '"dns-clients"'
+          - name: fetches-per-server
+            value: 100 fail
+          - name: fetches-per-zone
+            value: 200 fail
           - name: allow-transfer
             entries:
               - none
