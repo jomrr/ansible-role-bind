@@ -268,15 +268,15 @@ bind_zone_files: []
 # bind_zone_files:
 #   - name: example.com
 #     file: /var/named/zones/db.example.com
-#     primary: ns1.example.com
-#     email: hostmaster.example.com
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
 #     records:
-#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com" }
+#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
 #       - { name: "ns1", type: "A", ttl: "1h", data: "192.0.2.53" }
 #   - name: 2.0.192.in-addr.arpa
 #     file: /var/named/zones/db.2.0.192.in-addr.arpa
-#     primary: ns1.example.com
-#     email: hostmaster.example.com
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
 #     records:
 #       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }
 
