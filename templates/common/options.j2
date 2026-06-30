@@ -1,6 +1,5 @@
 {% set __bind_public_option_names = bind_options | selectattr('name', 'defined') | map(attribute='name') | list %}
 options {
-    qname-minimization {{ bind_qname_minimization }};
 {% for listener in bind_listeners %}
     {{ listener.name }}{% if listener.port is defined %} port {{ listener.port }}{% endif %}{% if listener.tls is defined %} tls {{ listener.tls }}{% endif %}{% if listener.http is defined %} http {{ listener.http }}{% endif %} {
 {% for entry in listener.entries %}

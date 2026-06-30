@@ -34,6 +34,8 @@ provisioner:
             value: "only"
           - name: "forwarders"
             entries: "{{ ansible_facts.dns.nameservers }}"
+          - name: "qname-minimization"
+            value: "strict"
           - name: "allow-query-cache"
             entries:
               - "local"

@@ -181,19 +181,6 @@ argument_specs:
             elements: raw
             required: true
             description: Address match list entries for the listener.
-      bind_qname_minimization:
-        type: str
-        required: false
-        default: strict
-        choices:
-          - strict
-          - relaxed
-          - disabled
-          - 'off'
-        description:
-          - QNAME minimization mode for the recursive resolver.
-          - Strict mode follows the minimization algorithm without fallback to normal query
-            mode.
       bind_options:
         type: list
         elements: dict

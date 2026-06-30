@@ -30,6 +30,8 @@ provisioner:
             value: "only"
           - name: "forwarders"
             entries: "{{ ansible_facts.dns.nameservers }}"
+          - name: "qname-minimization"
+            value: "strict"
           - name: "dnssec-validation"
             value: "auto"
 verifier:

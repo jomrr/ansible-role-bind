@@ -94,18 +94,14 @@ bind_listeners:
 #     entries:
 #       - any
 
-# QNAME minimization mode for the recursive resolver.
-bind_qname_minimization: "strict"
-# bind_qname_minimization: "relaxed"
-# bind_qname_minimization: "disabled"
-# bind_qname_minimization: "off"
-
 # Ordered statements rendered inside the BIND options block.
 # Entries with the same name as package-native options replace those native
 # options. Empty values omit the matching native option.
 bind_options:
   - name: "recursion"
     value: "yes"
+  - name: "qname-minimization"
+    value: "strict"
   - name: "allow-query"
     entries:
       - "local"
@@ -144,6 +140,8 @@ bind_options:
 # bind_options:
 #   - name: recursion
 #     value: "yes"
+#   - name: qname-minimization
+#     value: strict
 #   - name: forwarders
 #     entries:
 #       - 1.1.1.1
