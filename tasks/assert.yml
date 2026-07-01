@@ -28,6 +28,18 @@
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
 
+- name: "BIND | Validate zone file declarations"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.file is defined and __bind_zone.file | length > 0
+    fail_msg: "Zone {{ __bind_zone.name }}: {{ __bind_zone.type }} zones require file."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.type in __bind_zone_target_classes
+
 - name: "BIND | Validate secondary zone declarations"
   ansible.builtin.assert:
     that:

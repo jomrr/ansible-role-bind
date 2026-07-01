@@ -7,7 +7,7 @@
     __bind_effective_zones: >-
       {%- set acc = namespace(zones=[]) -%}
       {%- for zone in bind_zones -%}
-        {%- if zone.file is defined -%}
+        {%- if zone.type in __bind_zone_target_classes -%}
           {%- set target_class = __bind_zone_target_classes[zone.type][zone.dynamic | default(false) | bool] -%}
           {%- set target = __bind_zone_targets[target_class] -%}
           {%- set enriched = zone | combine({
