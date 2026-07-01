@@ -162,56 +162,36 @@ Allow local clients to query a recursive resolver with explicit upstream forward
   roles:
     - role: jomrr.bind
       vars:
-        bind_acls:
-          - name: local
-            entries:
-              - localhost
-              - 192.0.2.0/24
-          - name: my_addresses
-            entries:
-              - localhost
-          - name: bogons
-            entries:
-              - 0.0.0.0/8
-              - 169.254.0.0/16
-              - 192.0.2.0/24
-              - 198.18.0.0/15
-              - 198.51.100.0/24
-              - 203.0.113.0/24
-              - 224.0.0.0/4
-              - 240.0.0.0/4
-              - ::/128
-              - ::ffff:0:0/96
-              - 100::/64
-              - 2001:db8::/32
-              - fe80::/10
-              - ff00::/8
         bind_options:
           - name: listen-on
             arguments: port 53
             entries:
               - 127.0.0.1
-              - 192.0.2.53
+              - 10.53.0.53
           - name: listen-on-v6
             arguments: port 53
             entries:
               - none
           - name: allow-query
             entries:
-              - local
+              - 127.0.0.1
+              - 10.53.0.0/24
           - name: allow-query-cache
             entries:
-              - local
+              - 127.0.0.1
+              - 10.53.0.0/24
           - name: allow-recursion
             entries:
-              - local
+              - 127.0.0.1
+              - 10.53.0.0/24
           - name: recursion
             value: "yes"
           - name: qname-minimization
             value: strict
           - name: deny-answer-addresses
             entries:
-              - my_addresses
+              - 127.0.0.1
+              - 10.53.0.53
           - name: blackhole
             entries:
               - bogons
@@ -236,8 +216,8 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             value: only
           - name: forwarders
             entries:
-              - 1.1.1.1
-              - 9.9.9.9
+              - 10.53.0.1
+              - 10.54.0.1
 ```
 ### Authoritative response rate limiting
 
@@ -405,72 +385,52 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
   roles:
     - role: jomrr.bind
       vars:
-        bind_acls:
-          - name: dns-clients
-            entries:
-              - 127.0.0.1
-              - 192.168.0.0/16
-              - 10.0.0.0/16
-          - name: dns-listen
-            entries:
-              - 127.0.0.1
-              - 192.168.254.20
-              - 10.0.0.10
-          - name: my_addresses
-            entries:
-              - localhost
-          - name: bogons
-            entries:
-              - 0.0.0.0/8
-              - 169.254.0.0/16
-              - 192.0.2.0/24
-              - 198.18.0.0/15
-              - 198.51.100.0/24
-              - 203.0.113.0/24
-              - 224.0.0.0/4
-              - 240.0.0.0/4
-              - ::/128
-              - ::ffff:0:0/96
-              - 100::/64
-              - 2001:db8::/32
-              - fe80::/10
-              - ff00::/8
         bind_primaries:
           - name: samba-dlz
             entries:
-              - 192.168.254.10
+              - 10.53.0.10
         bind_controls:
           - inet 127.0.0.1 port 953 allow { 127.0.0.1; } read-only yes
         bind_options:
           - name: listen-on
             arguments: port 53
             entries:
-              - '"dns-listen"'
+              - 127.0.0.1
+              - 10.53.0.20
+              - 10.54.0.10
           - name: listen-on-v6
             arguments: port 53
             entries:
               - none
           - name: transfer-source
-            value: 192.168.254.20
+            value: 10.53.0.20
           - name: recursion
             value: "yes"
           - name: qname-minimization
             value: strict
           - name: deny-answer-addresses
             entries:
-              - my_addresses
+              - 127.0.0.1
+              - 10.53.0.20
+              - 10.54.0.10
           - name: blackhole
             entries:
               - bogons
           - name: allow-query
             entries:
-              - '"dns-clients"'
+              - 127.0.0.1
+              - 10.53.0.0/24
+              - 10.54.0.0/24
           - name: allow-query-cache
             entries:
-              - '"dns-clients"'
+              - 127.0.0.1
+              - 10.53.0.0/24
+              - 10.54.0.0/24
           - name: allow-recursion
             entries:
-              - '"dns-clients"'
+              - 127.0.0.1
+              - 10.53.0.0/24
+              - 10.54.0.0/24
           - name: recursive-clients
             value: 300
           - name: fetches-per-server
@@ -495,25 +455,25 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
             value: only
           - name: forwarders
             entries:
-              - 10.0.0.1
+              - 10.53.0.1
           - name: notify
             value: primary-only
           - name: dnssec-validation
             value: "no"
         bind_zones:
           - <<: *samba_secondary_zone
-            name: mauer.in
+            name: example.com
             comment: main forward zone
-            file: db.mauer.in
+            file: db.example.com
           - <<: *samba_secondary_zone
-            name: home.mauer.in
+            name: ad.example.com
             comment: AD forward zone
-            file: db.home.mauer.in
-          - name: fritz.box
+            file: db.ad.example.com
+          - name: branch.example.com
             type: forward
             forward: only
             forwarders:
-              - 192.168.72.1
+              - 10.55.0.1
 ```
 ### Authoritative primary
 
@@ -543,7 +503,7 @@ Configure an authoritative primary zone and render the zone file.
               - qps-scale 250
           - name: allow-transfer
             entries:
-              - 192.0.2.54
+              - 10.53.0.54
         bind_zones:
           - name: example.com
             class: IN
@@ -563,11 +523,11 @@ Configure an authoritative primary zone and render the zone file.
               - name: ns1.example.com.
                 addresses:
                   - type: A
-                    address: 192.0.2.53
-          - name: 2.0.192.in-addr.arpa
+                    address: 10.53.0.53
+          - name: 0.53.10.in-addr.arpa
             class: IN
             type: primary
-            file: db.2.0.192.in-addr.arpa
+            file: db.0.53.10.in-addr.arpa
             primary: ns1.example.com.
             email: hostmaster.example.com.
             ns_records:
@@ -592,7 +552,7 @@ Configure an authoritative secondary zone.
         bind_primaries:
           - name: public-primary
             entries:
-              - 192.0.2.53
+              - 10.53.0.53
         bind_options:
           - name: recursion
             value: "no"

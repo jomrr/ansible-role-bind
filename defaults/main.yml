@@ -39,14 +39,14 @@ bind_acls:
 #   - name: dns-clients
 #     entries:
 #       - 127.0.0.1
-#       - 192.168.0.0/16
+#       - 10.53.0.0/24
 
 # Named primaries lists used by secondary zones.
 bind_primaries: []
 # bind_primaries:
 #   - name: samba-dlz
 #     entries:
-#       - 192.168.254.10
+#       - 10.53.0.10
 
 # Entries rendered inside the BIND controls block.
 bind_controls: []
@@ -190,7 +190,7 @@ bind_options:
 #     value: 200 fail
 #   - name: forwarders
 #     entries:
-#       - 1.1.1.1
+#       - 10.53.0.1
 #   - name: rate-limit
 #     entries:
 #       - responses-per-second 5
@@ -256,14 +256,14 @@ bind_zones: []
 #     ns_records:
 #       - name: ns1.example.com.
 #         addresses:
-#           - { type: "A", ttl: "1h", address: "192.0.2.53" }
+#           - { type: "A", ttl: "1h", address: "10.53.0.53" }
 #     records:
-#       - { name: "www", type: "A", ttl: "1h", data: "192.0.2.80" }
-#   - name: 2.0.192.in-addr.arpa
+#       - { name: "www", type: "A", ttl: "1h", data: "10.53.0.80" }
+#   - name: 0.53.10.in-addr.arpa
 #     class: IN
 #     type: primary
 #     dynamic: false
-#     file: db.2.0.192.in-addr.arpa
+#     file: db.0.53.10.in-addr.arpa
 #     primary: ns1.example.com.
 #     email: hostmaster.example.com.
 #     ns_records:
@@ -282,7 +282,7 @@ bind_zones: []
 #     ns_records:
 #       - name: ns1.example.com.
 #         addresses:
-#           - { type: "A", address: "192.0.2.53" }
+#           - { type: "A", address: "10.53.0.53" }
 #   - name: example.com
 #     class: IN
 #     type: primary
@@ -301,12 +301,12 @@ bind_zones: []
 #     ns_records:
 #       - name: ns1.example.com.
 #         addresses:
-#           - { type: "A", address: "192.0.2.53" }
+#           - { type: "A", address: "10.53.0.53" }
 
 # Additional complete top-level BIND statements for unsupported edge cases.
 bind_extra_statements: []
 # bind_extra_statements:
-#   - server 192.0.2.10 { bogus yes; }
+#   - server 10.53.0.10 { bogus yes; }
 
 # Default TTL for managed zone files.
 bind_zone_file_ttl: "1h"
