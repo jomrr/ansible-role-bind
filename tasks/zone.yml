@@ -29,7 +29,6 @@
     owner: "{{ __bind_zone_targets[__bind_zone.target_class].owner }}"
     group: "{{ __bind_zone_targets[__bind_zone.target_class].group }}"
     mode: "{{ __bind_zone_targets[__bind_zone.target_class].mode }}"
-    force: "{{ __bind_zone_targets[__bind_zone.target_class].force }}"
     validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
   notify:
     - serial

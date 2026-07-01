@@ -41,12 +41,31 @@
   no_log: true
   notify: restart
 
-- name: "BIND | Configure zone files"
+- name: "BIND | Configure static zone files"
   ansible.builtin.include_tasks: "zone.yml"
-  loop: "{{ __bind_effective_zones | selectattr('managed_file') | list }}"
+  loop: "{{ __bind_effective_zones | selectattr('target_class', 'equalto', 'static') | list }}"
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
+
+- name: "BIND | Bootstrap dynamic zone files"
+  ansible.builtin.template:
+    src: "zone.j2"
+    dest: "{{ __bind_zone.file_path }}"
+    owner: "{{ __bind_zone_targets[__bind_zone.target_class].owner }}"
+    group: "{{ __bind_zone_targets[__bind_zone.target_class].group }}"
+    mode: "{{ __bind_zone_targets[__bind_zone.target_class].mode }}"
+    force: false
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+  vars:
+    __bind_zone_serial: "1"
+  loop: "{{ __bind_effective_zones | selectattr('target_class', 'equalto', 'dynamic') | list }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  notify:
+    - validate
+    - restart
 
 - name: "BIND | Generate options configuration file"
   ansible.builtin.template:

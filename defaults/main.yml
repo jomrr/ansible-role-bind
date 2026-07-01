@@ -270,11 +270,10 @@ bind_zones: []
 #     file: db.example.com
 #     allow_update:
 #       - key ddns
-#     bootstrap:
-#       primary: ns1.example.com.
-#       email: hostmaster.example.com.
-#       records:
-#         - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
+#     records:
+#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
 #   - name: example.com
 #     class: IN
 #     type: primary
@@ -288,11 +287,10 @@ bind_zones: []
 #           - A
 #           - AAAA
 #           - TXT
-#     bootstrap:
-#       primary: ns1.example.com.
-#       email: hostmaster.example.com.
-#       records:
-#         - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
+#     records:
+#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
 
 # Additional complete top-level BIND statements for unsupported edge cases.
 bind_extra_statements: []

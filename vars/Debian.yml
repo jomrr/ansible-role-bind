@@ -26,13 +26,11 @@ __bind_zone_targets:
     owner: "root"
     group: "{{ __bind_group }}"
     mode: "0640"
-    force: true
   dynamic:
     path: "/var/lib/bind"
     owner: "{{ __bind_user }}"
     group: "{{ __bind_group }}"
     mode: "0640"
-    force: false
   secondary:
     path: "/var/cache/bind"
 

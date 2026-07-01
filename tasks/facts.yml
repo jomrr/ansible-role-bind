@@ -12,11 +12,10 @@
           {%- set target = __bind_zone_targets[target_class] -%}
           {%- set enriched = zone | combine({
                 'target_class': target_class,
-                'file_path': target.path ~ '/' ~ zone.file,
-                'managed_file': target_class in ['static', 'dynamic']
+                'file_path': target.path ~ '/' ~ zone.file
               }) -%}
         {%- else -%}
-          {%- set enriched = zone | combine({'managed_file': false}) -%}
+          {%- set enriched = zone -%}
         {%- endif -%}
         {%- set acc.zones = acc.zones + [enriched] -%}
       {%- endfor -%}

@@ -314,10 +314,9 @@ argument_specs:
         default: []
         description:
           - BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
-          - Zone file contents are managed directly from this variable for static primary
-            zones.
-          - Dynamic primary zones can receive an initial bootstrap file, but runtime records
-            belong to DDNS updates.
+          - Static primary zone files are managed directly from this variable.
+          - Dynamic primary zone files are created only when missing; runtime records belong
+            to DDNS updates.
           - The file option is a file name only; the role places it in the platform-native
             directory for the zone type.
         options:
@@ -517,88 +516,6 @@ argument_specs:
                 type: str
                 required: true
                 description: Record data.
-          bootstrap:
-            type: dict
-            required: false
-            description:
-              - Initial zone file content for dynamic primary zones.
-              - The file is created only when it does not already exist.
-              - Runtime records for dynamic zones are managed through DDNS, not by rewriting
-                the zone file.
-            options:
-              ttl:
-                type: str
-                required: false
-                default: 1h
-                description:
-                  - Default TTL for the bootstrap zone file.
-                  - Uses bind_zone_file_ttl when omitted.
-              origin:
-                type: str
-                required: false
-                description: Optional $ORIGIN value.
-              primary:
-                type: str
-                required: true
-                description: Primary nameserver used in the SOA record.
-              email:
-                type: str
-                required: true
-                description: SOA responsible mailbox in DNS zone format.
-              refresh:
-                type: str
-                required: false
-                default: 1h
-                description:
-                  - SOA refresh interval.
-                  - Uses bind_zone_file_refresh when omitted.
-              retry:
-                type: str
-                required: false
-                default: 15m
-                description:
-                  - SOA retry interval.
-                  - Uses bind_zone_file_retry when omitted.
-              expire:
-                type: str
-                required: false
-                default: 1w
-                description:
-                  - SOA expire interval.
-                  - Uses bind_zone_file_expire when omitted.
-              minimum:
-                type: str
-                required: false
-                default: 1d
-                description:
-                  - SOA minimum TTL.
-                  - Uses bind_zone_file_minimum when omitted.
-              records:
-                type: list
-                elements: dict
-                required: true
-                description: DNS records for the bootstrap zone file.
-                options:
-                  name:
-                    type: str
-                    required: true
-                    description: Record owner name.
-                  type:
-                    type: str
-                    required: true
-                    description: DNS record type.
-                  ttl:
-                    type: str
-                    required: false
-                    description: Record TTL.
-                  class:
-                    type: str
-                    required: false
-                    description: Optional DNS class, for example IN.
-                  data:
-                    type: str
-                    required: true
-                    description: Record data.
       bind_extra_statements:
         type: list
         elements: str

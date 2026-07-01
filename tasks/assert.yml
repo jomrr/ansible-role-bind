@@ -32,9 +32,8 @@
   ansible.builtin.assert:
     that:
       - __bind_zone.records is not defined
-      - __bind_zone.bootstrap is not defined
       - not (__bind_zone.dynamic | default(false) | bool)
-    fail_msg: "Zone {{ __bind_zone.name }}: secondary zones are transferred by BIND and take no records, bootstrap, or dynamic flag."
+    fail_msg: "Zone {{ __bind_zone.name }}: secondary zones are transferred by BIND and take no records or dynamic flag."
     quiet: true
   loop: "{{ bind_zones }}"
   loop_control:
