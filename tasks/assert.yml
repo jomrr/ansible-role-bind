@@ -1,0 +1,55 @@
+---
+# role: bind
+# file: tasks/assert.yml
+
+- name: "BIND | Validate dynamic update requires dynamic flag"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.dynamic | default(false) | bool
+    fail_msg: "Zone {{ __bind_zone.name }}: update_policy/allow_update/inline_signing require dynamic: true."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: >-
+    __bind_zone.update_policy is defined or
+    __bind_zone.allow_update is defined or
+    (__bind_zone.inline_signing | default(false) | bool)
+
+- name: "BIND | Validate mutually exclusive update mechanisms"
+  ansible.builtin.assert:
+    that:
+      - not (__bind_zone.allow_update is defined and __bind_zone.update_policy is defined)
+    fail_msg: "Zone {{ __bind_zone.name }}: allow-update and update-policy are mutually exclusive."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+
+- name: "BIND | Validate secondary zone declarations"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.records is not defined
+      - __bind_zone.bootstrap is not defined
+      - not (__bind_zone.dynamic | default(false) | bool)
+    fail_msg: "Zone {{ __bind_zone.name }}: secondary zones are transferred by BIND and take no records, bootstrap, or dynamic flag."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.type == 'secondary'
+
+- name: "BIND | Validate update forwarding is secondary-only"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.type == 'secondary'
+    fail_msg: "Zone {{ __bind_zone.name }}: allow-update-forwarding is only valid on secondary zones."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.allow_update_forwarding is defined

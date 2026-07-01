@@ -4,7 +4,7 @@
 
 - name: "BIND | Read existing zone file"
   ansible.builtin.command:
-    cmd: "cat {{ __bind_zone_file.file }}"
+    cmd: "cat {{ __bind_zone.file_path }}"
   register: __bind_zone_existing
   failed_when: false
   changed_when: false
@@ -25,11 +25,12 @@
 - name: "BIND | Generate zone file"
   ansible.builtin.template:
     src: "zone.j2"
-    dest: "{{ __bind_zone_file.file }}"
-    owner: "{{ __bind_user }}"
-    group: "{{ __bind_group }}"
-    mode: "0640"
-    validate: "{{ __bind_checkzone_command }} {{ __bind_zone_file.name }} %s"
+    dest: "{{ __bind_zone.file_path }}"
+    owner: "{{ __bind_zone_targets[__bind_zone.target_class].owner }}"
+    group: "{{ __bind_zone_targets[__bind_zone.target_class].group }}"
+    mode: "{{ __bind_zone_targets[__bind_zone.target_class].mode }}"
+    force: "{{ __bind_zone_targets[__bind_zone.target_class].force }}"
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
   notify:
     - serial
     - validate

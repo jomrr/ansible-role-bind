@@ -17,7 +17,7 @@ dlz "{{ dlz.name }}" {
 };
 
 {% endfor %}
-{% set __bind_render_zones = bind_zones %}
+{% set __bind_render_zones = __bind_effective_zones %}
 {% include "common/zones.j2" %}
 {% for statement in bind_extra_statements %}
 {{ statement }}

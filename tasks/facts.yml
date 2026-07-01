@@ -1,0 +1,46 @@
+---
+# role: bind
+# file: tasks/facts.yml
+
+- name: "BIND | Resolve effective zones"
+  ansible.builtin.set_fact:
+    __bind_effective_zones: >-
+      {%- set acc = namespace(zones=[]) -%}
+      {%- for zone in bind_zones -%}
+        {%- if zone.file is defined -%}
+          {%- set target_class = __bind_zone_target_classes[zone.type][zone.dynamic | default(false) | bool] -%}
+          {%- set target = __bind_zone_targets[target_class] -%}
+          {%- set enriched = zone | combine({
+                'target_class': target_class,
+                'file_path': target.path ~ '/' ~ zone.file,
+                'managed_file': target_class in ['static', 'dynamic']
+              }) -%}
+        {%- else -%}
+          {%- set enriched = zone | combine({'managed_file': false}) -%}
+        {%- endif -%}
+        {%- set acc.zones = acc.zones + [enriched] -%}
+      {%- endfor -%}
+      {{ acc.zones }}
+
+- name: "BIND | Merge effective options"
+  # Merge three option sources with precedence internal < platform < user.
+  # Per name the highest-precedence definition wins; the option keeps its
+  # first-seen position so overrides don't reorder the rendered block.
+  # Nameless entries (raw/include) pass through unchanged, in place.
+  ansible.builtin.set_fact:
+    __bind_effective_options: >-
+      {%- set combined = __bind_options + __bind_platform_options + bind_options -%}
+      {%- set winner = {} -%}
+      {%- for opt in combined if opt.name is defined -%}
+        {%- set _ = winner.update({opt.name: opt}) -%}
+      {%- endfor -%}
+      {%- set acc = namespace(emitted=[], out=[]) -%}
+      {%- for opt in combined -%}
+        {%- if opt.name is not defined -%}
+          {%- set acc.out = acc.out + [opt] -%}
+        {%- elif opt.name not in acc.emitted -%}
+          {%- set acc.out = acc.out + [winner[opt.name]] -%}
+          {%- set acc.emitted = acc.emitted + [opt.name] -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ acc.out }}

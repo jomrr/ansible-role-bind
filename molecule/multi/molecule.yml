@@ -67,7 +67,8 @@ provisioner:
           - name: "example.com"
             class: "IN"
             type: "primary"
-            file: "{{ bind_multi_zone_file }}"
+            dynamic: true
+            file: "db.example.com"
             update_policy:
               - action: "grant"
                 identity: "ddns"
@@ -79,24 +80,22 @@ provisioner:
               - "allow-transfer { {{ bind_multi_secondary_ip }}; }"
               - "also-notify { {{ bind_multi_secondary_ip }}; }"
               - "notify yes"
-        bind_zone_files:
-          - name: "example.com"
-            file: "{{ bind_multi_zone_file }}"
-            primary: "ns1.example.com."
-            email: "hostmaster.example.com."
-            records:
-              - name: "@"
-                type: "NS"
-                data: "ns1.example.com."
-              - name: "@"
-                type: "NS"
-                data: "ns2.example.com."
-              - name: "ns1"
-                type: "A"
-                data: "{{ bind_multi_primary_ip }}"
-              - name: "ns2"
-                type: "A"
-                data: "{{ bind_multi_secondary_ip }}"
+            bootstrap:
+              primary: "ns1.example.com."
+              email: "hostmaster.example.com."
+              records:
+                - name: "@"
+                  type: "NS"
+                  data: "ns1.example.com."
+                - name: "@"
+                  type: "NS"
+                  data: "ns2.example.com."
+                - name: "ns1"
+                  type: "A"
+                  data: "{{ bind_multi_primary_ip }}"
+                - name: "ns2"
+                  type: "A"
+                  data: "{{ bind_multi_secondary_ip }}"
       bind_multi_secondary:
         bind_primaries:
           - name: "example-primary"
@@ -108,7 +107,7 @@ provisioner:
             type: "secondary"
             primaries:
               - "\"example-primary\""
-            file: "{{ bind_multi_zone_file }}"
+            file: "db.example.com"
             allow_update_forwarding:
               - "key ddns"
     host_vars:
@@ -117,12 +116,10 @@ provisioner:
         bind_multi_primary_ip: "172.29.253.10"
         bind_multi_secondary_ip: "172.29.253.11"
         bind_multi_update_ip: "192.0.2.10"
-        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
       bind-secondary:
         bind_multi_ip: "172.29.253.11"
         bind_multi_primary_ip: "172.29.253.10"
         bind_multi_secondary_ip: "172.29.253.11"
-        bind_multi_zone_file: "/var/named/dynamic/db.example.com"
 verifier:
   name: "ansible"
 scenario:

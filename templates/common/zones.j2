@@ -9,11 +9,16 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
 {% if zone.primaries is defined %}
     primaries { {% for entry in zone.primaries %}{{ entry }}; {% endfor %}};
 {% endif %}
-{% if zone.file is defined %}
+{% if zone.file_path is defined %}
+    file "{{ zone.file_path }}";
+{% elif zone.file is defined %}
     file "{{ zone.file }}";
 {% endif %}
 {% if zone.allow_update_forwarding is defined %}
     allow-update-forwarding { {% for entry in zone.allow_update_forwarding %}{{ entry }}; {% endfor %}};
+{% endif %}
+{% if zone.allow_update is defined %}
+    allow-update { {% for entry in zone.allow_update %}{{ entry }}; {% endfor %}};
 {% endif %}
 {% if zone.update_policy is defined %}
     update-policy {
@@ -21,6 +26,9 @@ zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %}
         {{ rule.action }} {{ rule.identity }} {{ rule.match_type }}{% if rule.name is defined %} {{ rule.name }}{% endif %} {{ rule.types | join(' ') }};
 {% endfor %}
     };
+{% endif %}
+{% if zone.inline_signing is defined %}
+    inline-signing {{ zone.inline_signing | ternary('yes', 'no') }};
 {% endif %}
 {% if zone.forward is defined %}
     forward {{ zone.forward }};

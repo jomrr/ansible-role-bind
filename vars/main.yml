@@ -10,3 +10,11 @@ __bind_checkzone_command: "named-checkzone"
 
 # Native SOA serial marker used by managed zone files.
 __bind_zone_serial_regexp: '(?m)^([ \t]*)([0-9]+)([ \t]*;[ \t]*[Ss]erial[ \t]*)$'
+
+# Internal mapping from zone type and dynamic flag to the platform target class.
+__bind_zone_target_classes:
+  primary:
+    false: "static"
+    true: "dynamic"
+  secondary:
+    false: "secondary"

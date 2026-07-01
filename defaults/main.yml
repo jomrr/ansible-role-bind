@@ -230,7 +230,9 @@ bind_dlz: []
 #     statements:
 #       - database "dlopen /usr/lib64/samba/bind9/dlz_bind9.so"
 
-# BIND zone declarations.
+# BIND zone declarations and managed zone file contents. The file value is a
+# file name only; the role places it in the platform-native directory selected
+# by the zone type and dynamic flag.
 bind_zones: []
 # bind_zones:
 #   - name: example.com
@@ -239,19 +241,45 @@ bind_zones: []
 #     type: secondary
 #     primaries:
 #       - '"samba-dlz"'
-#     file: slaves/db.example.com
+#     file: db.example.com
 #     allow_update_forwarding:
 #       - any
 #   - name: example.com
 #     class: IN
 #     type: primary
-#     file: /var/named/zones/db.example.com
-#     statements:
-#       - allow-update { key ddns; }
+#     dynamic: false
+#     file: db.example.com
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
+#     records:
+#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
+#       - { name: "ns1", type: "A", ttl: "1h", data: "192.0.2.53" }
+#   - name: 2.0.192.in-addr.arpa
+#     class: IN
+#     type: primary
+#     dynamic: false
+#     file: db.2.0.192.in-addr.arpa
+#     primary: ns1.example.com.
+#     email: hostmaster.example.com.
+#     records:
+#       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }
 #   - name: example.com
 #     class: IN
 #     type: primary
-#     file: /var/named/zones/db.example.com
+#     dynamic: true
+#     file: db.example.com
+#     allow_update:
+#       - key ddns
+#     bootstrap:
+#       primary: ns1.example.com.
+#       email: hostmaster.example.com.
+#       records:
+#         - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
+#   - name: example.com
+#     class: IN
+#     type: primary
+#     dynamic: true
+#     file: db.example.com
 #     update_policy:
 #       - action: grant
 #         identity: ddns
@@ -260,28 +288,16 @@ bind_zones: []
 #           - A
 #           - AAAA
 #           - TXT
+#     bootstrap:
+#       primary: ns1.example.com.
+#       email: hostmaster.example.com.
+#       records:
+#         - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
 
 # Additional complete top-level BIND statements for unsupported edge cases.
 bind_extra_statements: []
 # bind_extra_statements:
 #   - server 192.0.2.10 { bogus yes; }
-
-# Managed authoritative zone files.
-bind_zone_files: []
-# bind_zone_files:
-#   - name: example.com
-#     file: /var/named/zones/db.example.com
-#     primary: ns1.example.com.
-#     email: hostmaster.example.com.
-#     records:
-#       - { name: "@", type: "NS", ttl: "1h", data: "ns1.example.com." }
-#       - { name: "ns1", type: "A", ttl: "1h", data: "192.0.2.53" }
-#   - name: 2.0.192.in-addr.arpa
-#     file: /var/named/zones/db.2.0.192.in-addr.arpa
-#     primary: ns1.example.com.
-#     email: hostmaster.example.com.
-#     records:
-#       - { name: "53", type: "PTR", ttl: "1h", data: "ns1.example.com." }
 
 # Default TTL for managed zone files.
 bind_zone_file_ttl: "1h"

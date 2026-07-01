@@ -1,17 +1,18 @@
 ; vim: set tabstop=4,shiftwidth=4,expandtabs,ft=bindzone
 ; {{ template_destpath }}
 
-$TTL {{ __bind_zone_file.ttl if __bind_zone_file.ttl is defined else bind_zone_file_ttl }}
-{% if __bind_zone_file.origin is defined %}
-$ORIGIN {{ __bind_zone_file.origin }}
+{% set zone_content = __bind_zone.bootstrap | default(__bind_zone) %}
+$TTL {{ zone_content.ttl if zone_content.ttl is defined else bind_zone_file_ttl }}
+{% if zone_content.origin is defined %}
+$ORIGIN {{ zone_content.origin }}
 {% endif %}
-@ IN SOA {{ __bind_zone_file.primary }} {{ __bind_zone_file.email }} (
+@ IN SOA {{ zone_content.primary }} {{ zone_content.email }} (
     {{ __bind_zone_serial }} ; serial
-    {{ __bind_zone_file.refresh if __bind_zone_file.refresh is defined else bind_zone_file_refresh }}
-    {{ __bind_zone_file.retry if __bind_zone_file.retry is defined else bind_zone_file_retry }}
-    {{ __bind_zone_file.expire if __bind_zone_file.expire is defined else bind_zone_file_expire }}
-    {{ __bind_zone_file.minimum if __bind_zone_file.minimum is defined else bind_zone_file_minimum }}
+    {{ zone_content.refresh if zone_content.refresh is defined else bind_zone_file_refresh }}
+    {{ zone_content.retry if zone_content.retry is defined else bind_zone_file_retry }}
+    {{ zone_content.expire if zone_content.expire is defined else bind_zone_file_expire }}
+    {{ zone_content.minimum if zone_content.minimum is defined else bind_zone_file_minimum }}
 )
-{% for record in __bind_zone_file.records %}
+{% for record in zone_content.records %}
 {{ record.name }}{% if record.ttl is defined %} {{ record.ttl }}{% endif %}{% if record.class is defined %} {{ record.class }}{% endif %} {{ record.type }} {{ record.data }}
 {% endfor %}

@@ -4,14 +4,14 @@
 
 - name: "BIND | Update zone serials"
   ansible.builtin.replace:
-    path: "{{ __bind_zone_file.file }}"
+    path: "{{ __bind_zone.file_path }}"
     regexp: "{{ __bind_zone_serial_regexp }}"
     replace: '\g<1>{{ ansible_facts.date_time.epoch }}\g<3>'
-    validate: "{{ __bind_checkzone_command }} {{ __bind_zone_file.name }} %s"
-  loop: "{{ bind_zone_files }}"
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+  loop: "{{ __bind_effective_zones | selectattr('target_class', 'equalto', 'static') | list }}"
   loop_control:
-    loop_var: __bind_zone_file
-    label: "{{ __bind_zone_file.name }}"
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
   listen: serial
 
 - name: "BIND | Validate configuration"

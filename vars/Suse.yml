@@ -17,6 +17,23 @@ __bind_group: "named"
 # Directory for managed TSIG key files.
 __bind_tsig_key_dir: "/etc/named.d"
 
+# Platform-native zone file targets.
+__bind_zone_targets:
+  static:
+    path: "/var/lib/named/master"
+    owner: "root"
+    group: "{{ __bind_group }}"
+    mode: "0640"
+    force: true
+  dynamic:
+    path: "/var/lib/named/dyn"
+    owner: "{{ __bind_user }}"
+    group: "{{ __bind_group }}"
+    mode: "0640"
+    force: false
+  secondary:
+    path: "/var/lib/named/slave"
+
 # Main configuration file for bind
 __bind_conf_file: "/etc/named.conf"
 
