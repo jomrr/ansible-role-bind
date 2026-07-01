@@ -1,4 +1,3 @@
-{% set __bind_public_option_names = bind_options | selectattr('name', 'defined') | map(attribute='name') | list %}
 options {
 {% for listener in bind_listeners %}
     {{ listener.name }}{% if listener.port is defined %} port {{ listener.port }}{% endif %}{% if listener.tls is defined %} tls {{ listener.tls }}{% endif %}{% if listener.http is defined %} http {{ listener.http }}{% endif %} {
@@ -7,7 +6,7 @@ options {
 {% endfor %}
     };
 {% endfor %}
-{% for option in (__bind_options | rejectattr('name', 'in', __bind_public_option_names) | list) + __bind_platform_options + bind_options %}
+{% for option in __bind_effective_options %}
 {% if option.include is defined and option.include %}
     include "{{ option.include }}";
 {% elif option.raw is defined %}

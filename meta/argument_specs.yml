@@ -188,9 +188,15 @@ argument_specs:
         elements: dict
         required: false
         description:
-          - Ordered BIND option statements rendered after package-native platform options.
-          - Entries with the same name as package-native options replace those native options.
-          - Empty values omit the matching native option.
+          - Ordered BIND option statements rendered inside the options block.
+          - Internal defaults, platform defaults, and bind_options are merged with precedence
+            internal, platform, then user.
+          - Entries with the same name keep the first output position and use the value
+            from the last definition.
+          - Raw and include entries without a name are opaque and are rendered without deduplication.
+          - Set name on a raw or include entry when it should replace an earlier same-name
+            option.
+          - Empty values omit the matching option.
           - The default includes a rate-limit entry for BIND response rate limiting.
         options:
           name:

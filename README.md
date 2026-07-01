@@ -56,7 +56,7 @@ The following variables are part of the public role interface.
 | `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
 | `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
 | `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
-| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered after package-native platform options.<br>Entries with the same name as package-native options replace those native options.<br>Empty values omit the matching native option.<br>The default includes a rate-limit entry for BIND response rate limiting. |
+| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered inside the options block.<br>Internal defaults, platform defaults, and bind_options are merged with precedence internal, platform, then user.<br>Entries with the same name keep the first output position and use the value from the last definition.<br>Raw and include entries without a name are opaque and are rendered without deduplication.<br>Set name on a raw or include entry when it should replace an earlier same-name option.<br>Empty values omit the matching option.<br>The default includes a rate-limit entry for BIND response rate limiting. |
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
@@ -107,7 +107,9 @@ changes notify the restart handler.
 
 - The main API follows BIND's own top-level blocks.
 - Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
-- Package-native path options are used by default and can be replaced by same-name entries in `bind_options`.
+- Internal defaults, platform defaults, and `bind_options` are merged with precedence internal, platform, then user.
+- Same-name option entries are deduplicated; the first occurrence keeps the output position and the last definition supplies the rendered value.
+- Raw and include option entries without `name` are opaque and are rendered unchanged. Add `name` to a raw or include entry only when it should replace an earlier same-name option.
 - Platform default includes are rendered automatically before additional `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
 - Managed forward and reverse zone files use absolute paths in `bind_zone_files`.

@@ -21,6 +21,29 @@
     name: "{{ __bind_packages }}"
     state: present
 
+- name: "BIND | Merge effective options"
+  # Merge three option sources with precedence internal < platform < user.
+  # Per name the highest-precedence definition wins; the option keeps its
+  # first-seen position so overrides don't reorder the rendered block.
+  # Nameless entries (raw/include) pass through unchanged, in place.
+  ansible.builtin.set_fact:
+    __bind_effective_options: >-
+      {%- set combined = __bind_options + __bind_platform_options + bind_options -%}
+      {%- set winner = {} -%}
+      {%- for opt in combined if opt.name is defined -%}
+        {%- set _ = winner.update({opt.name: opt}) -%}
+      {%- endfor -%}
+      {%- set acc = namespace(emitted=[], out=[]) -%}
+      {%- for opt in combined -%}
+        {%- if opt.name is not defined -%}
+          {%- set acc.out = acc.out + [opt] -%}
+        {%- elif opt.name not in acc.emitted -%}
+          {%- set acc.out = acc.out + [winner[opt.name]] -%}
+          {%- set acc.emitted = acc.emitted + [opt.name] -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ acc.out }}
+
 - name: "BIND | Generate TSIG key files"
   ansible.builtin.template:
     src: "tsig.j2"

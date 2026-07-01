@@ -96,9 +96,12 @@ bind_listeners:
 #     entries:
 #       - any
 
-# Ordered statements rendered inside the BIND options block.
-# Entries with the same name as package-native options replace those native
-# options. Empty values omit the matching native option.
+# Ordered statements rendered inside the BIND options block. Internal defaults,
+# platform defaults, and public options are merged with public options taking
+# precedence. Entries with the same name keep the first output position and use
+# the value from the last definition. Nameless raw and include entries are
+# rendered unchanged and are not deduplicated. Empty values omit the matching
+# option.
 bind_options:
   - name: "recursion"
     value: "yes"
