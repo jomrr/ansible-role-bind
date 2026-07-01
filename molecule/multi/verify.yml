@@ -24,6 +24,24 @@
       retries: 30
       delay: 2
 
+    - name: "BIND | Verify DDNS record is absent before update"
+      ansible.builtin.command:
+        argv:
+          - dig
+          - "@127.0.0.1"
+          - update.example.com
+          - A
+          - +short
+          - +tries=1
+          - +time=2
+      register: __bind_verify_update_before_nsupdate
+      changed_when: false
+      until:
+        - __bind_verify_update_before_nsupdate.rc == 0
+        - __bind_verify_update_before_nsupdate.stdout_lines | length == 0
+      retries: 10
+      delay: 1
+
     - name: "BIND | Submit DDNS update on primary"
       ansible.builtin.command:
         argv:

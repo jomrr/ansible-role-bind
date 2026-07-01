@@ -12,6 +12,16 @@ $ORIGIN {{ __bind_zone.origin }}
     {{ __bind_zone.expire if __bind_zone.expire is defined else bind_zone_file_expire }}
     {{ __bind_zone.minimum if __bind_zone.minimum is defined else bind_zone_file_minimum }}
 )
+{% for record in __bind_zone.ns_records %}
+@{% if record.ttl is defined %} {{ record.ttl }}{% endif %} IN NS {{ record.name }}
+{% if record.addresses is defined %}
+{% for address in record.addresses %}
+{{ record.name }}{% if address.ttl is defined %} {{ address.ttl }}{% endif %} IN {{ address.type }} {{ address.address }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% if __bind_zone.records is defined %}
 {% for record in __bind_zone.records %}
 {{ record.name }}{% if record.ttl is defined %} {{ record.ttl }}{% endif %}{% if record.class is defined %} {{ record.class }}{% endif %} {{ record.type }} {{ record.data }}
 {% endfor %}
+{% endif %}

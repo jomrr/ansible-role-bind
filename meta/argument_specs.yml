@@ -315,8 +315,9 @@ argument_specs:
         description:
           - BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
           - Static primary zone files are managed directly from this variable.
-          - Dynamic primary zone files are created only when missing; runtime records belong
-            to DDNS updates.
+          - Primary zones require ns_records for the authoritative zone base.
+          - Dynamic primary zone files are created only when missing with SOA and ns_records;
+            runtime records belong to DDNS updates.
           - The file option is a file name only; the role places it in the platform-native
             directory for the zone type.
         options:
@@ -462,6 +463,43 @@ argument_specs:
             type: str
             required: false
             description: SOA responsible mailbox in DNS zone format.
+          ns_records:
+            type: list
+            elements: dict
+            required: false
+            description:
+              - Authoritative NS records rendered into primary zone files.
+              - Required for primary zones.
+            options:
+              name:
+                type: str
+                required: true
+                description: Nameserver DNS name rendered as NS record target.
+              ttl:
+                type: str
+                required: false
+                description: Optional NS record TTL.
+              addresses:
+                type: list
+                elements: dict
+                required: false
+                description: Optional A or AAAA records for the nameserver.
+                options:
+                  type:
+                    type: str
+                    required: true
+                    choices:
+                      - A
+                      - AAAA
+                    description: Address record type.
+                  address:
+                    type: str
+                    required: true
+                    description: Address record data.
+                  ttl:
+                    type: str
+                    required: false
+                    description: Optional address record TTL.
           refresh:
             type: str
             required: false
@@ -494,7 +532,9 @@ argument_specs:
             type: list
             elements: dict
             required: false
-            description: DNS records for the zone.
+            description:
+              - DNS records rendered into static primary zone files.
+              - Dynamic primary zones use DDNS or nsupdate for runtime records.
             options:
               name:
                 type: str

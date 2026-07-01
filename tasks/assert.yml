@@ -40,12 +40,50 @@
     label: "{{ __bind_zone.name }}"
   when: __bind_zone.type in __bind_zone_target_classes
 
+- name: "BIND | Validate primary zone base"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.primary is defined
+      - __bind_zone.email is defined
+      - __bind_zone.ns_records is defined and __bind_zone.ns_records | length > 0
+    fail_msg: "Zone {{ __bind_zone.name }}: primary zones require primary, email, and ns_records."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.type == 'primary'
+
+- name: "BIND | Validate NS records are primary-only"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.type == 'primary'
+    fail_msg: "Zone {{ __bind_zone.name }}: ns_records are only valid on primary zones."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.ns_records is defined
+
+- name: "BIND | Validate records only on static primary zones"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.type == 'primary'
+      - not (__bind_zone.dynamic | default(false) | bool)
+    fail_msg: "Zone {{ __bind_zone.name }}: records are only valid on static primary zones."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.records is defined
+
 - name: "BIND | Validate secondary zone declarations"
   ansible.builtin.assert:
     that:
-      - __bind_zone.records is not defined
       - not (__bind_zone.dynamic | default(false) | bool)
-    fail_msg: "Zone {{ __bind_zone.name }}: secondary zones are transferred by BIND and take no records or dynamic flag."
+    fail_msg: "Zone {{ __bind_zone.name }}: secondary zones are transferred by BIND and cannot be dynamic."
     quiet: true
   loop: "{{ bind_zones }}"
   loop_control:

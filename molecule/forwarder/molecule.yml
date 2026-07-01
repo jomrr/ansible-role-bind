@@ -28,7 +28,7 @@ provisioner:
         bind_molecule_dnsbl_valid_domain: "example.org"
         bind_molecule_dnsbl_blocked_domain: "example.com"
         bind_molecule_dnsbl_blocked_address: "0.0.0.0"
-        bind_molecule_dnsbl_zone_name: "rpz.local"
+        bind_molecule_dnsbl_zone_name: "rpz.example.com"
         bind_options:
           - name: "forward"
             value: "only"
@@ -71,13 +71,15 @@ provisioner:
           - name: "{{ bind_molecule_dnsbl_zone_name }}"
             class: "IN"
             type: "primary"
-            file: "db.rpz.local"
-            primary: "localhost."
-            email: "hostmaster.localhost."
+            file: "db.rpz.example.com"
+            primary: "ns1.rpz.example.com."
+            email: "hostmaster.rpz.example.com."
+            ns_records:
+              - name: "ns1.rpz.example.com."
+                addresses:
+                  - type: "A"
+                    address: "127.0.0.1"
             records:
-              - name: "@"
-                type: "NS"
-                data: "localhost."
               - name: "{{ bind_molecule_dnsbl_blocked_domain }}"
                 type: "A"
                 data: "{{ bind_molecule_dnsbl_blocked_address }}"

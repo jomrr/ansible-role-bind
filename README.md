@@ -60,7 +60,7 @@ The following variables are part of the public role interface.
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
-| `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Static primary zone files are managed directly from this variable.<br>Dynamic primary zone files are created only when missing; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
+| `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Static primary zone files are managed directly from this variable.<br>Primary zones require ns_records for the authoritative zone base.<br>Dynamic primary zone files are created only when missing with SOA and ns_records; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
 | `bind_extra_statements` | `list` | `false` | [] | Additional complete top-level BIND statements for unsupported edge cases. |
 | `bind_zone_file_ttl` | `str` | `false` | `1h` | Default TTL for managed zone files. |
 | `bind_zone_file_refresh` | `str` | `false` | `1h` | Default SOA refresh interval for managed zone files. |
@@ -112,7 +112,8 @@ changes notify the restart handler.
 - Platform default includes are rendered automatically before additional `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
 - Managed zone files are declared in `bind_zones`; `file` is a file name only and the role selects the platform-native static, dynamic, or secondary directory.
-- Dynamic primary zone files are created only when missing; runtime records belong to DDNS updates.
+- Primary zones declare their mandatory authoritative NS base through `ns_records`.
+- Dynamic primary zone files are created only when missing with SOA and `ns_records`; runtime records belong to DDNS updates.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust `deny-answer-addresses` accordingly.
@@ -314,15 +315,20 @@ Enable a local response policy zone for DNSBL-style filtering.
               - qps-scale 250
           - name: response-policy
             entries:
-              - zone "rpz.local"
+              - zone "rpz.example.com"
         bind_zones:
-          - name: rpz.local
+          - name: rpz.example.com
             type: primary
-            file: db.rpz.local
+            file: db.rpz.example.com
             statements:
               - allow-query { localhost; }
-            primary: ns1.rpz.local.
-            email: hostmaster.rpz.local.
+            primary: ns1.rpz.example.com.
+            email: hostmaster.rpz.example.com.
+            ns_records:
+              - name: ns1.rpz.example.com.
+                addresses:
+                  - type: A
+                    address: 127.0.0.1
             records:
               - name: bad.example
                 type: CNAME
@@ -553,19 +559,19 @@ Configure an authoritative primary zone and render the zone file.
                   - A
             primary: ns1.example.com.
             email: hostmaster.example.com.
-            records:
-              - name: "@"
-                type: NS
-                data: ns1.example.com.
-              - name: ns1
-                type: A
-                data: 192.0.2.53
+            ns_records:
+              - name: ns1.example.com.
+                addresses:
+                  - type: A
+                    address: 192.0.2.53
           - name: 2.0.192.in-addr.arpa
             class: IN
             type: primary
             file: db.2.0.192.in-addr.arpa
             primary: ns1.example.com.
             email: hostmaster.example.com.
+            ns_records:
+              - name: ns1.example.com.
             records:
               - name: "53"
                 type: PTR

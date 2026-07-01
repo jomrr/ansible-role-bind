@@ -82,19 +82,15 @@ provisioner:
               - "notify yes"
             primary: "ns1.example.com."
             email: "hostmaster.example.com."
-            records:
-              - name: "@"
-                type: "NS"
-                data: "ns1.example.com."
-              - name: "@"
-                type: "NS"
-                data: "ns2.example.com."
-              - name: "ns1"
-                type: "A"
-                data: "{{ bind_multi_primary_ip }}"
-              - name: "ns2"
-                type: "A"
-                data: "{{ bind_multi_secondary_ip }}"
+            ns_records:
+              - name: "ns1.example.com."
+                addresses:
+                  - type: "A"
+                    address: "{{ bind_multi_primary_ip }}"
+              - name: "ns2.example.com."
+                addresses:
+                  - type: "A"
+                    address: "{{ bind_multi_secondary_ip }}"
       bind_multi_secondary:
         bind_primaries:
           - name: "example-primary"
