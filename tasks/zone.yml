@@ -4,7 +4,9 @@
 
 - name: "BIND | Read existing zone file"
   ansible.builtin.command:
-    cmd: "cat {{ __bind_zone.file_path }}"
+    argv:
+      - cat
+      - "{{ __bind_zone.file_path }}"
   register: __bind_zone_existing
   failed_when: false
   changed_when: false

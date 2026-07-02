@@ -31,8 +31,10 @@
 - name: "BIND | Validate zone file declarations"
   ansible.builtin.assert:
     that:
-      - __bind_zone.file is defined and __bind_zone.file | length > 0
-    fail_msg: "Zone {{ __bind_zone.name }}: {{ __bind_zone.type }} zones require file."
+      - (__bind_zone.name | default('')) is match('^\\S+$')
+      - (__bind_zone.file | default('')) is match('^[^/\\s]+$')
+      - (__bind_zone.file | default('')) not in ['.', '..']
+    fail_msg: "Zone {{ __bind_zone.name }}: name must not contain whitespace; file must be a file name without path separators or whitespace."
     quiet: true
   loop: "{{ bind_zones }}"
   loop_control:

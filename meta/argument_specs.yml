@@ -324,7 +324,7 @@ argument_specs:
           name:
             type: str
             required: true
-            description: Zone name.
+            description: Zone name without whitespace.
           class:
             type: str
             required: false
@@ -351,7 +351,7 @@ argument_specs:
             type: str
             required: false
             description:
-              - Zone file name without a path component.
+              - Zone file name without path separators or whitespace.
               - The role uses platform-native static, dynamic, or secondary zone directories.
           primaries:
             type: list
