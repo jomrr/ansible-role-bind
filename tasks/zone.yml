@@ -30,7 +30,17 @@
     group: "{{ __bind_zone_targets[__bind_zone.target_class].group }}"
     mode: "{{ __bind_zone_targets[__bind_zone.target_class].mode }}"
     validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+  register: __bind_zone_template
   notify:
-    - serial
     - validate
     - restart
+
+- name: "BIND | Update zone serial"
+  ansible.builtin.replace:
+    path: "{{ __bind_zone.file_path }}"
+    regexp: "{{ __bind_zone_serial_regexp }}"
+    replace: '\g<1>{{ [(__bind_zone_serial | int + 1), (ansible_facts.date_time.epoch | int)] | max }}\g<3>'
+    validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
+  when:
+    - __bind_zone_existing.rc == 0
+    - __bind_zone_template.changed
