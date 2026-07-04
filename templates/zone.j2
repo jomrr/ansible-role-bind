@@ -1,5 +1,5 @@
 ; vim: set tabstop=4,shiftwidth=4,expandtabs,ft=bindzone
-; {{ template_destpath }}
+; file: {{ template_destpath }}
 
 $TTL {{ __bind_zone.ttl if __bind_zone.ttl is defined else bind_zone_file_ttl }}
 {% if __bind_zone.origin is defined %}
