@@ -1,9 +1,7 @@
-{% set __bind_logging_channels = __bind_logging.channels + bind_logging.channels %}
-{% set __bind_logging_categories = __bind_logging.categories + bind_logging.categories %}
-{% if __bind_logging_channels or __bind_logging_categories %}
+{% if (bind_logging | default(__bind_logging, true)).get('channels', {}) or (bind_logging | default(__bind_logging, true)).get('categories', {}) %}
 logging {
-{% for channel in __bind_logging_channels %}
-    channel {{ channel.name }} {
+{% for channel_name, channel in (bind_logging | default(__bind_logging, true)).get('channels', {}).items() %}
+    channel {{ channel_name }} {
 {% if channel.file is defined %}
         file "{{ channel.file }}"{% if channel.file_options is defined %} {{ channel.file_options }}{% endif %};
 {% endif %}
@@ -21,8 +19,8 @@ logging {
 {% endif %}
     };
 {% endfor %}
-{% for category in __bind_logging_categories %}
-    category {{ category.name }} { {% for channel in category.channels %}{{ channel }}; {% endfor %}};
+{% for category_name, channels in (bind_logging | default(__bind_logging, true)).get('categories', {}).items() %}
+    category {{ category_name }} { {% for channel in channels %}{{ channel }}; {% endfor %}};
 {% endfor %}
 };
 

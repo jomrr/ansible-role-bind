@@ -75,7 +75,7 @@ __bind_options:
 # Native BIND logging values from Red Hat-family bind packages.
 __bind_logging:
   channels:
-    - name: "default_debug"
+    default_debug:
       file: "data/named.run"
       severity: "dynamic"
-  categories: []
+  categories: {}

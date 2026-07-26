@@ -70,5 +70,5 @@ __bind_options:
 
 # openSUSE bind packages do not configure explicit logging by default.
 __bind_logging:
-  channels: []
-  categories: []
+  channels: {}
+  categories: {}
