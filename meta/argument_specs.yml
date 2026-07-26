@@ -33,7 +33,7 @@ argument_specs:
             description: TSIG algorithm used for the key, for example hmac-sha256.
           secret:
             type: str
-            required: false
+            required: true
             no_log: true
             description: Base64-encoded TSIG secret.
       bind_acls:
