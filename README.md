@@ -60,7 +60,7 @@ The following variables are part of the public role interface.
 | `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
-| `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Static primary zone files are managed directly from this variable.<br>Primary zones require ns_records for the authoritative zone base.<br>Dynamic primary zone files are created only when missing with SOA and ns_records; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
+| `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Zone declarations and managed records use the Internet DNS class IN.<br>Static primary zone files are managed directly from this variable.<br>Primary zones require ns_records for the authoritative zone base.<br>Dynamic primary zone files are created only when missing with SOA and ns_records; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
 | `bind_extra_statements` | `list` | `false` | [] | Additional complete top-level BIND statements for unsupported edge cases. |
 | `bind_zone_file_ttl` | `str` | `false` | `1h` | Default TTL for managed zone files. |
 | `bind_zone_file_refresh` | `str` | `false` | `1h` | Default SOA refresh interval for managed zone files. |
@@ -376,7 +376,6 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
   gather_facts: true
   vars:
     samba_secondary_zone: &samba_secondary_zone
-      class: IN
       type: secondary
       primaries:
         - '"samba-dlz"'
@@ -506,7 +505,6 @@ Configure an authoritative primary zone and render the zone file.
               - 10.53.0.54
         bind_zones:
           - name: example.com
-            class: IN
             type: primary
             dynamic: true
             file: db.example.com
@@ -525,7 +523,6 @@ Configure an authoritative primary zone and render the zone file.
                   - type: A
                     address: 10.53.0.53
           - name: 0.53.10.in-addr.arpa
-            class: IN
             type: primary
             file: db.0.53.10.in-addr.arpa
             primary: ns1.example.com.
@@ -569,7 +566,6 @@ Configure an authoritative secondary zone.
               - qps-scale 250
         bind_zones:
           - name: example.com
-            class: IN
             type: secondary
             primaries:
               - '"public-primary"'

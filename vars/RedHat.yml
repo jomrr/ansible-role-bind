@@ -39,7 +39,6 @@ __bind_conf_file: "/etc/named.conf"
 # Platform zones rendered into named.conf.
 __bind_platform_zones:
   - name: "."
-    class: "IN"
     type: "hint"
     file: "/etc/named.ca"
 

@@ -316,6 +316,7 @@ argument_specs:
         default: []
         description:
           - BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
+          - Zone declarations and managed records use the Internet DNS class IN.
           - Static primary zone files are managed directly from this variable.
           - Primary zones require ns_records for the authoritative zone base.
           - Dynamic primary zone files are created only when missing with SOA and ns_records;
@@ -327,13 +328,9 @@ argument_specs:
             type: str
             required: true
             description: Zone name without whitespace.
-          class:
-            type: str
-            required: false
-            description: Optional DNS class, for example IN.
           type:
             type: str
-            required: false
+            required: true
             choices:
               - primary
               - secondary
@@ -550,10 +547,6 @@ argument_specs:
                 type: str
                 required: false
                 description: Record TTL.
-              class:
-                type: str
-                required: false
-                description: Optional DNS class, for example IN.
               data:
                 type: str
                 required: true

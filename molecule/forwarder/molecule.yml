@@ -69,7 +69,6 @@ provisioner:
               - "zone \"{{ bind_molecule_dnsbl_zone_name }}\""
         bind_zones:
           - name: "{{ bind_molecule_dnsbl_zone_name }}"
-            class: "IN"
             type: "primary"
             file: "db.rpz.example.com"
             primary: "ns1.rpz.example.com."

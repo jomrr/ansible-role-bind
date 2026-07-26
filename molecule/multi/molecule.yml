@@ -65,7 +65,6 @@ provisioner:
       bind_multi_primary:
         bind_zones:
           - name: "example.com"
-            class: "IN"
             type: "primary"
             dynamic: true
             file: "db.example.com"
@@ -98,7 +97,6 @@ provisioner:
               - "{{ bind_multi_primary_ip }}"
         bind_zones:
           - name: "example.com"
-            class: "IN"
             type: "secondary"
             primaries:
               - "\"example-primary\""

@@ -2,10 +2,8 @@
 {% if zone.comment is defined %}
 // {{ zone.comment }}
 {% endif %}
-zone "{{ zone.name }}"{% if zone.class is defined %} {{ zone.class }}{% endif %} {
-{% if zone.type is defined %}
+zone "{{ zone.name }}" IN {
     type {{ zone.type }};
-{% endif %}
 {% if zone.primaries is defined %}
     primaries { {% for entry in zone.primaries %}{{ entry }}; {% endfor %}};
 {% endif %}
