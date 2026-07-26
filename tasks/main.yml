@@ -39,7 +39,9 @@
     loop_var: __bind_tsig_key
     label: "{{ __bind_tsig_key.name }}"
   no_log: true
-  notify: restart
+  notify:
+    - validate
+    - restart
 
 - name: "BIND | Configure static zone files"
   ansible.builtin.include_tasks: "zone.yml"
