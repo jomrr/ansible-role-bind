@@ -2,6 +2,28 @@
 # role: bind
 # file: tasks/assert.yml
 
+- name: "BIND | Validate TSIG key names"
+  ansible.builtin.assert:
+    that:
+      - __bind_tsig_key.name is match('^[A-Za-z0-9_.-]+$')
+    fail_msg: >-
+      TSIG key {{ __bind_tsig_key.name }}: name may contain only letters,
+      digits, dots, underscores, and hyphens.
+    quiet: true
+  loop: "{{ bind_tsig_keys }}"
+  loop_control:
+    loop_var: __bind_tsig_key
+    label: "{{ __bind_tsig_key.name }}"
+
+- name: "BIND | Validate unique TSIG key names"
+  ansible.builtin.assert:
+    that:
+      - >-
+        bind_tsig_keys | map(attribute='name') | list | length ==
+        bind_tsig_keys | map(attribute='name') | unique | list | length
+    fail_msg: "TSIG key names must be unique."
+    quiet: true
+
 - name: "BIND | Validate dynamic update requires dynamic flag"
   ansible.builtin.assert:
     that:

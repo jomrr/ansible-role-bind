@@ -24,7 +24,9 @@ argument_specs:
           name:
             type: str
             required: true
-            description: TSIG key name and key file stem.
+            description:
+              - TSIG key name and safe key file stem.
+              - Use only letters, digits, dots, underscores, and hyphens.
           algorithm:
             type: str
             required: true

@@ -16,7 +16,7 @@
       skip: true
   loop: "{{ query('first_found', params, errors='ignore') }}"
 
-- name: "BIND | Validate zone declarations"
+- name: "BIND | Validate declarations"
   ansible.builtin.include_tasks: "assert.yml"
 
 - name: "BIND | Set internal facts"
