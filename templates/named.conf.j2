@@ -1,0 +1,218 @@
+// Managed by ansible.
+// file: {{ template_destpath }}
+
+{% for __bind_key in bind_tsig_keys %}
+include "{{ __bind_tsig_key_dir }}/{{ __bind_key.name }}.key";
+{% endfor %}
+{% if bind_tsig_keys %}
+
+{% endif %}
+{% for __bind_acl in bind_acls %}
+acl "{{ __bind_acl.name }}" {
+{% for __bind_entry in __bind_acl.entries %}
+    {{ __bind_entry }};
+{% endfor %}
+};
+
+{% endfor %}
+{% for __bind_primaries in bind_primaries %}
+primaries "{{ __bind_primaries.name }}" {
+{% for __bind_entry in __bind_primaries.entries %}
+    {{ __bind_entry }};
+{% endfor %}
+};
+
+{% endfor %}
+{% if bind_controls %}
+controls {
+{% for __bind_control in bind_controls %}
+    {{ __bind_control }};
+{% endfor %}
+};
+
+{% endif %}
+{% for __bind_tls in bind_tls %}
+tls {{ __bind_tls.name }} {
+{% if __bind_tls.key_file is defined %}
+    key-file "{{ __bind_tls.key_file }}";
+{% endif %}
+{% if __bind_tls.cert_file is defined %}
+    cert-file "{{ __bind_tls.cert_file }}";
+{% endif %}
+{% if __bind_tls.ca_file is defined %}
+    ca-file "{{ __bind_tls.ca_file }}";
+{% endif %}
+{% if __bind_tls.dhparam_file is defined %}
+    dhparam-file "{{ __bind_tls.dhparam_file }}";
+{% endif %}
+{% if __bind_tls.ciphers is defined %}
+    ciphers "{{ __bind_tls.ciphers }}";
+{% endif %}
+{% if __bind_tls.protocols is defined %}
+    protocols { {% for __bind_protocol in __bind_tls.protocols %}{{ __bind_protocol }}; {% endfor %}};
+{% endif %}
+{% if __bind_tls.prefer_server_ciphers is defined %}
+    prefer-server-ciphers {{ 'yes' if __bind_tls.prefer_server_ciphers else 'no' }};
+{% endif %}
+{% if __bind_tls.remote_hostname is defined %}
+    remote-hostname "{{ __bind_tls.remote_hostname }}";
+{% endif %}
+{% if __bind_tls.session_tickets is defined %}
+    session-tickets {{ 'yes' if __bind_tls.session_tickets else 'no' }};
+{% endif %}
+};
+
+{% endfor %}
+{% for __bind_http in bind_http %}
+http {{ __bind_http.name }} {
+{% if __bind_http.endpoints is defined %}
+    endpoints { {% for __bind_endpoint in __bind_http.endpoints %}"{{ __bind_endpoint }}"; {% endfor %}};
+{% endif %}
+{% if __bind_http.listener_clients is defined %}
+    listener-clients {{ __bind_http.listener_clients }};
+{% endif %}
+{% if __bind_http.streams_per_connection is defined %}
+    streams-per-connection {{ __bind_http.streams_per_connection }};
+{% endif %}
+};
+
+{% endfor %}
+{% set __bind_option_sources = __bind_options + __bind_platform_options + bind_options %}
+{% set __bind_named_options = {} %}
+{% for __bind_option in __bind_option_sources if __bind_option.name is defined %}
+{% set __bind_unused = __bind_named_options.update({__bind_option.name: __bind_option}) %}
+{% endfor %}
+{% set __bind_seen_options = [] %}
+options {
+{% for __bind_listener in bind_listeners %}
+    {{ __bind_listener.name }}{% if __bind_listener.port is defined %} port {{ __bind_listener.port }}{% endif %}{% if __bind_listener.tls is defined %} tls {{ __bind_listener.tls }}{% endif %}{% if __bind_listener.http is defined %} http {{ __bind_listener.http }}{% endif %} {
+{% for __bind_entry in __bind_listener.entries %}
+        {{ __bind_entry }};
+{% endfor %}
+    };
+{% endfor %}
+{% for __bind_source in __bind_option_sources %}
+{% if __bind_source.name is not defined or __bind_source.name not in __bind_seen_options %}
+{% set __bind_option = __bind_named_options[__bind_source.name] if __bind_source.name is defined else __bind_source %}
+{% if __bind_source.name is defined %}
+{% set __bind_unused = __bind_seen_options.append(__bind_source.name) %}
+{% endif %}
+{% if __bind_option.include is defined and __bind_option.include %}
+    include "{{ __bind_option.include }}";
+{% elif __bind_option.raw is defined %}
+{% if __bind_option.raw is string %}
+{% for __bind_line in __bind_option.raw.splitlines() %}
+    {{ __bind_line }}
+{% endfor %}
+{% else %}
+{% for __bind_line in __bind_option.raw %}
+    {{ __bind_line }}
+{% endfor %}
+{% endif %}
+{% elif __bind_option.entries is defined %}
+    {{ __bind_option.name }}{% if __bind_option.arguments is defined %} {{ __bind_option.arguments }}{% endif %} {
+{% for __bind_entry in __bind_option.entries %}
+        {{ __bind_entry }};
+{% endfor %}
+    };
+{% elif __bind_option.value is defined %}
+{% if __bind_option.value is not none and __bind_option.value | string | length > 0 %}
+    {{ __bind_option.name }} {{ __bind_option.value }};
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+};
+{% set __bind_logging_channels = (__bind_logging.channels + (bind_logging.channels | default([]))) | reverse | unique(attribute='name', case_sensitive=true) | reverse | list %}
+{% set __bind_logging_categories = (__bind_logging.categories + (bind_logging.categories | default([]))) | reverse | unique(attribute='name', case_sensitive=true) | reverse | list %}
+{% if __bind_logging_channels or __bind_logging_categories %}
+logging {
+{% for __bind_channel in __bind_logging_channels %}
+    channel {{ __bind_channel.name }} {
+{% if __bind_channel.file is defined %}
+        file "{{ __bind_channel.file }}"{% if __bind_channel.file_options is defined %} {{ __bind_channel.file_options }}{% endif %};
+{% endif %}
+{% if __bind_channel.severity is defined %}
+        severity {{ __bind_channel.severity }};
+{% endif %}
+{% if __bind_channel.print_time is defined %}
+        print-time {{ 'yes' if __bind_channel.print_time else 'no' }};
+{% endif %}
+{% if __bind_channel.print_severity is defined %}
+        print-severity {{ 'yes' if __bind_channel.print_severity else 'no' }};
+{% endif %}
+{% if __bind_channel.print_category is defined %}
+        print-category {{ 'yes' if __bind_channel.print_category else 'no' }};
+{% endif %}
+    };
+{% endfor %}
+{% for __bind_category in __bind_logging_categories %}
+    category {{ __bind_category.name }} { {% for __bind_channel in __bind_category.channels %}{{ __bind_channel }}; {% endfor %}};
+{% endfor %}
+};
+
+{% endif %}
+{% for __bind_include in __bind_includes + bind_includes %}
+include "{{ __bind_include }}";
+{% endfor %}
+
+{% for __bind_dlz in bind_dlz %}
+{% if __bind_dlz.comment is defined %}
+// {{ __bind_dlz.comment }}
+{% endif %}
+dlz "{{ __bind_dlz.name }}" {
+{% if __bind_dlz.statements is defined %}
+{% for __bind_statement in __bind_dlz.statements %}
+    {{ __bind_statement }};
+{% endfor %}
+{% endif %}
+};
+
+{% endfor %}
+{% for __bind_zone in (__bind_platform_zones + __bind_effective_zones) %}
+{% if __bind_zone.comment is defined %}
+// {{ __bind_zone.comment }}
+{% endif %}
+zone "{{ __bind_zone.name }}" IN {
+    type {{ __bind_zone.type }};
+{% if __bind_zone.primaries is defined %}
+    primaries { {% for __bind_entry in __bind_zone.primaries %}{{ __bind_entry }}; {% endfor %}};
+{% endif %}
+{% if __bind_zone.file_path is defined %}
+    file "{{ __bind_zone.file_path }}";
+{% elif __bind_zone.file is defined %}
+    file "{{ __bind_zone.file }}";
+{% endif %}
+{% if __bind_zone.allow_update_forwarding is defined %}
+    allow-update-forwarding { {% for __bind_entry in __bind_zone.allow_update_forwarding %}{{ __bind_entry }}; {% endfor %}};
+{% endif %}
+{% if __bind_zone.allow_update is defined %}
+    allow-update { {% for __bind_entry in __bind_zone.allow_update %}{{ __bind_entry }}; {% endfor %}};
+{% endif %}
+{% if __bind_zone.update_policy is defined %}
+    update-policy {
+{% for __bind_rule in __bind_zone.update_policy %}
+        {{ __bind_rule.action }} {{ __bind_rule.identity }} {{ __bind_rule.match_type }}{% if __bind_rule.name is defined %} {{ __bind_rule.name }}{% endif %} {{ __bind_rule.types | join(' ') }};
+{% endfor %}
+    };
+{% endif %}
+{% if __bind_zone.inline_signing is defined %}
+    inline-signing {{ __bind_zone.inline_signing | ternary('yes', 'no') }};
+{% endif %}
+{% if __bind_zone.forward is defined %}
+    forward {{ __bind_zone.forward }};
+{% endif %}
+{% if __bind_zone.forwarders is defined %}
+    forwarders { {% for __bind_entry in __bind_zone.forwarders %}{{ __bind_entry }}; {% endfor %}};
+{% endif %}
+{% if __bind_zone.statements is defined %}
+{% for __bind_statement in __bind_zone.statements %}
+    {{ __bind_statement }};
+{% endfor %}
+{% endif %}
+};
+
+{% endfor %}
+{% for __bind_statement in bind_extra_statements %}
+{{ __bind_statement }}
+{% endfor %}

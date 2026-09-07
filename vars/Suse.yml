@@ -70,5 +70,9 @@ __bind_options:
 
 # openSUSE bind packages do not configure explicit logging by default.
 __bind_logging:
-  channels: {}
-  categories: {}
+  channels: []
+  categories: []
+
+# Native validators for BIND configuration and zone files.
+__bind_checkconf_command: "named-checkconf %s"
+__bind_checkzone_command: "named-checkzone"

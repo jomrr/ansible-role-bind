@@ -2,7 +2,7 @@
 # role: bind
 # file: molecule/multi/verify.yml
 
-- name: "Molecule | verify | bind multi"
+- name: "BIND | Verify primary and secondary"
   hosts: bind_multi_primary
   gather_facts: false
   tasks:

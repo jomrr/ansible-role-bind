@@ -203,17 +203,20 @@ bind_options:
 #       - slip 2
 #       - qps-scale 250
 
-# BIND logging channels and categories.
-bind_logging: {}
+# BIND logging channels and categories. Same-name entries replace platform defaults.
+bind_logging:
+  channels: []
+  categories: []
 # bind_logging:
 #   channels:
-#     query_log:
+#     - name: default_debug
 #       file: data/named.run
 #       file_options: versions 10 size 128m
 #       severity: dynamic
 #   categories:
-#     queries:
-#       - query_log
+#     - name: queries
+#       channels:
+#         - default_debug
 
 # Additional top-level include files rendered after platform default includes.
 bind_includes: []

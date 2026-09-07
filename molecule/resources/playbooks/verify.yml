@@ -2,7 +2,7 @@
 # role: bind
 # file: molecule/resources/playbooks/verify.yml
 
-- name: "Molecule | verify | bind"
+- name: "BIND | Verify default localhost resolver"
   hosts: all
   gather_facts: false
   tasks:

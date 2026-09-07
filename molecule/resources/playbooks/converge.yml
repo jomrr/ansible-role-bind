@@ -2,7 +2,7 @@
 # role: bind
 # file: molecule/resources/playbooks/converge.yml
 
-- name: "Molecule | converge | bind"
+- name: "BIND | Converge"
   hosts: all
   gather_facts: true
   roles:

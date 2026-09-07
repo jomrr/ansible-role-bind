@@ -2,44 +2,22 @@
 # role: bind
 # file: tasks/facts.yml
 
+# Resolved paths are shared by the zone tasks and named.conf.
 - name: "BIND | Resolve effective zones"
   ansible.builtin.set_fact:
     __bind_effective_zones: >-
-      {%- set acc = namespace(zones=[]) -%}
-      {%- for zone in bind_zones -%}
-        {%- if zone.type in __bind_zone_target_classes -%}
-          {%- set target_class = __bind_zone_target_classes[zone.type][zone.dynamic | default(false) | bool] -%}
-          {%- set target = __bind_zone_targets[target_class] -%}
-          {%- set enriched = zone | combine({
-                'target_class': target_class,
-                'file_path': target.path ~ '/' ~ zone.file
+      {%- set __bind_acc = namespace(zones=[]) -%}
+      {%- for __bind_zone in bind_zones -%}
+        {%- if __bind_zone.type in __bind_zone_target_classes -%}
+          {%- set __bind_target_class = __bind_zone_target_classes[__bind_zone.type][__bind_zone.dynamic | default(false) | bool] -%}
+          {%- set __bind_target = __bind_zone_targets[__bind_target_class] -%}
+          {%- set __bind_enriched = __bind_zone | combine({
+                'target_class': __bind_target_class,
+                'file_path': __bind_target.path ~ '/' ~ __bind_zone.file
               }) -%}
         {%- else -%}
-          {%- set enriched = zone -%}
+          {%- set __bind_enriched = __bind_zone -%}
         {%- endif -%}
-        {%- set acc.zones = acc.zones + [enriched] -%}
+        {%- set __bind_acc.zones = __bind_acc.zones + [__bind_enriched] -%}
       {%- endfor -%}
-      {{ acc.zones }}
-
-- name: "BIND | Merge effective options"
-  # Merge three option sources with precedence internal < platform < user.
-  # Per name the highest-precedence definition wins; the option keeps its
-  # first-seen position so overrides don't reorder the rendered block.
-  # Nameless entries (raw/include) pass through unchanged, in place.
-  ansible.builtin.set_fact:
-    __bind_effective_options: >-
-      {%- set combined = __bind_options + __bind_platform_options + bind_options -%}
-      {%- set winner = {} -%}
-      {%- for opt in combined if opt.name is defined -%}
-        {%- set _ = winner.update({opt.name: opt}) -%}
-      {%- endfor -%}
-      {%- set acc = namespace(emitted=[], out=[]) -%}
-      {%- for opt in combined -%}
-        {%- if opt.name is not defined -%}
-          {%- set acc.out = acc.out + [opt] -%}
-        {%- elif opt.name not in acc.emitted -%}
-          {%- set acc.out = acc.out + [winner[opt.name]] -%}
-          {%- set acc.emitted = acc.emitted + [opt.name] -%}
-        {%- endif -%}
-      {%- endfor -%}
-      {{ acc.out }}
+      {{ __bind_acc.zones }}

@@ -1,0 +1,37 @@
+---
+# role: bind
+# file: molecule/dev/verify.yml
+
+- name: BIND | Verify managed zones after reconverge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: BIND | Query managed records
+      ansible.builtin.command:
+        argv:
+          - dig
+          - '@127.0.0.1'
+          - '{{ __bind_test_record.name }}'
+          - '{{ __bind_test_record.type }}'
+          - +short
+          - +tries=1
+          - +time=2
+      loop:
+        - name: www.example.test
+          type: A
+          answer: 192.0.2.80
+        - name: 80.2.0.192.in-addr.arpa
+          type: PTR
+          answer: www.example.test.
+        - name: runtime.ddns.test
+          type: A
+          answer: 192.0.2.90
+      loop_control:
+        loop_var: __bind_test_record
+        label: '{{ __bind_test_record.name }}'
+      register: __bind_test_answer
+      changed_when: false
+      until:
+        - __bind_test_answer.stdout_lines == [__bind_test_record.answer]
+      retries: 10
+      delay: 1

@@ -2,7 +2,7 @@
 # role: bind
 # file: molecule/forwarder/verify.yml
 
-- name: "Molecule | verify | bind forwarder"
+- name: "BIND | Verify forwarder"
   hosts: all
   gather_facts: false
   tasks:

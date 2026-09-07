@@ -229,26 +229,65 @@ argument_specs:
       bind_logging:
         type: dict
         required: false
-        default: {}
         description:
           - BIND logging configuration with channels and categories.
-          - Channel and category names are mapping keys and therefore unique.
-          - An empty mapping renders the platform package logging configuration.
-          - A user-defined mapping replaces the complete platform logging configuration.
+          - Platform channels and categories are extended by the supplied lists.
+          - A supplied entry replaces a platform entry with the same name.
         options:
           channels:
-            type: dict
+            type: list
+            elements: dict
             required: false
-            default: {}
-            description:
-              - Mapping of channel names to BIND channel declarations.
-              - A declaration supports file, file_options, severity, print_time, print_severity,
-                and print_category.
+            description: BIND logging channel declarations.
+            options:
+              name:
+                type: str
+                required: true
+                description: Channel name.
+              file:
+                type: str
+                required: false
+                description: Log file path.
+              severity:
+                type: str
+                required: false
+                description: Log severity.
+              file_options:
+                type: str
+                required: false
+                description: Native BIND file options such as versions and size.
+              print_time:
+                type: bool
+                required: false
+                description: Whether log entries include timestamps.
+              print_severity:
+                type: bool
+                required: false
+                description: Whether log entries include severity.
+              print_category:
+                type: bool
+                required: false
+                description: Whether log entries include category.
+            default: []
           categories:
-            type: dict
+            type: list
+            elements: dict
             required: false
-            default: {}
-            description: Mapping of BIND category names to ordered channel name lists.
+            description: BIND logging category declarations.
+            options:
+              name:
+                type: str
+                required: true
+                description: Logging category name.
+              channels:
+                type: list
+                elements: str
+                required: true
+                description: Channel names used by this category.
+            default: []
+        default:
+          channels: []
+          categories: []
       bind_includes:
         type: list
         elements: str
@@ -414,7 +453,6 @@ argument_specs:
           ttl:
             type: str
             required: false
-            default: 1h
             description:
               - Default TTL for the zone file.
               - Uses bind_zone_file_ttl when omitted.
@@ -470,28 +508,24 @@ argument_specs:
           refresh:
             type: str
             required: false
-            default: 1h
             description:
               - SOA refresh interval.
               - Uses bind_zone_file_refresh when omitted.
           retry:
             type: str
             required: false
-            default: 15m
             description:
               - SOA retry interval.
               - Uses bind_zone_file_retry when omitted.
           expire:
             type: str
             required: false
-            default: 1w
             description:
               - SOA expire interval.
               - Uses bind_zone_file_expire when omitted.
           minimum:
             type: str
             required: false
-            default: 1d
             description:
               - SOA minimum TTL.
               - Uses bind_zone_file_minimum when omitted.
