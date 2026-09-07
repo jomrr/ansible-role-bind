@@ -6,24 +6,27 @@
   ansible.builtin.include_vars: "{{ ansible_facts.os_family }}.yml"
 
 - name: "BIND | Set distribution variables"
-  ansible.builtin.include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ __bind_platform_file }}"
   vars:
-    params:
+    __bind_platform_files:
       files:
         - "{{ ansible_facts.distribution }}.yml"
       paths:
         - "vars"
       skip: true
-  loop: "{{ query('first_found', params, errors='ignore') }}"
+  loop: "{{ query('ansible.builtin.first_found', __bind_platform_files) }}"
+  loop_control:
+    loop_var: __bind_platform_file
+    label: "{{ __bind_platform_file }}"
 
 - name: "BIND | Validate declarations"
-  ansible.builtin.include_tasks: "assert_pre.yml"
+  ansible.builtin.import_tasks: "assert_pre.yml"
 
 - name: "BIND | Set internal facts"
-  ansible.builtin.include_tasks: "facts.yml"
+  ansible.builtin.import_tasks: "facts.yml"
 
 - name: "BIND | Validate effective declarations"
-  ansible.builtin.include_tasks: "assert.yml"
+  ansible.builtin.import_tasks: "assert.yml"
 
 - name: "BIND | Install packages"
   ansible.builtin.package:
@@ -37,18 +40,18 @@
     owner: root
     group: "{{ __bind_group }}"
     mode: "0640"
+    backup: true
+    validate: "{{ __bind_checkconf_command }}"
   loop: "{{ bind_tsig_keys }}"
   loop_control:
     loop_var: __bind_tsig_key
     label: "{{ __bind_tsig_key.name }}"
   no_log: true
-  notify:
-    - validate
-    - restart
+  notify: restart
 
 - name: "BIND | Configure static zone files"
   ansible.builtin.include_tasks: "zone.yml"
-  loop: "{{ __bind_effective_zones | selectattr('target_class', 'equalto', 'static') | list }}"
+  loop: "{{ __bind_effective_zones | selectattr('target_class', 'defined') | selectattr('target_class', 'equalto', 'static') | list }}"
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
@@ -61,52 +64,29 @@
     group: "{{ __bind_zone_targets[__bind_zone.target_class].group }}"
     mode: "{{ __bind_zone_targets[__bind_zone.target_class].mode }}"
     force: false
+    backup: true
     validate: "{{ __bind_checkzone_command }} {{ __bind_zone.name }} %s"
   vars:
     __bind_zone_serial: "1"
-  loop: "{{ __bind_effective_zones | selectattr('target_class', 'equalto', 'dynamic') | list }}"
+  loop: "{{ __bind_effective_zones | selectattr('target_class', 'defined') | selectattr('target_class', 'equalto', 'dynamic') | list }}"
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
-  notify:
-    - validate
-    - restart
-
-- name: "BIND | Generate options configuration file"
-  ansible.builtin.template:
-    src: "{{ ansible_facts.os_family }}/named.conf.options.j2"
-    dest: "{{ __bind_options_file }}"
-    owner: root
-    group: "{{ __bind_group }}"
-    mode: "0640"
-  when: __bind_options_file is defined
-  notify:
-    - validate
-    - restart
-
-- name: "BIND | Generate local configuration file"
-  ansible.builtin.template:
-    src: "{{ ansible_facts.os_family }}/named.conf.local.j2"
-    dest: "{{ __bind_local_file }}"
-    owner: root
-    group: "{{ __bind_group }}"
-    mode: "0640"
-  when: __bind_local_file is defined
-  notify:
-    - validate
-    - restart
+  notify: restart
 
 - name: "BIND | Generate main configuration file"
   ansible.builtin.template:
-    src: "{{ ansible_facts.os_family }}/named.conf.j2"
+    src: "named.conf.j2"
     dest: "{{ __bind_conf_file }}"
     owner: root
     group: "{{ __bind_group }}"
     mode: "0640"
+    backup: true
     validate: "{{ __bind_checkconf_command }}"
-  notify:
-    - validate
-    - restart
+  notify: restart
+
+- name: "BIND | Apply configuration changes"
+  ansible.builtin.meta: flush_handlers
 
 - name: "BIND | Enable and start service"
   ansible.builtin.systemd_service:

@@ -231,6 +231,8 @@ argument_specs:
         required: false
         description:
           - BIND logging configuration with channels and categories.
+          - Platform channels and categories are extended by the supplied lists.
+          - A supplied entry replaces a platform entry with the same name.
         options:
           channels:
             type: list
@@ -266,6 +268,7 @@ argument_specs:
                 type: bool
                 required: false
                 description: Whether log entries include category.
+            default: []
           categories:
             type: list
             elements: dict
@@ -281,6 +284,10 @@ argument_specs:
                 elements: str
                 required: true
                 description: Channel names used by this category.
+            default: []
+        default:
+          channels: []
+          categories: []
       bind_includes:
         type: list
         elements: str
@@ -446,7 +453,6 @@ argument_specs:
           ttl:
             type: str
             required: false
-            default: 1h
             description:
               - Default TTL for the zone file.
               - Uses bind_zone_file_ttl when omitted.
@@ -502,28 +508,24 @@ argument_specs:
           refresh:
             type: str
             required: false
-            default: 1h
             description:
               - SOA refresh interval.
               - Uses bind_zone_file_refresh when omitted.
           retry:
             type: str
             required: false
-            default: 15m
             description:
               - SOA retry interval.
               - Uses bind_zone_file_retry when omitted.
           expire:
             type: str
             required: false
-            default: 1w
             description:
               - SOA expire interval.
               - Uses bind_zone_file_expire when omitted.
           minimum:
             type: str
             required: false
-            default: 1d
             description:
               - SOA minimum TTL.
               - Uses bind_zone_file_minimum when omitted.

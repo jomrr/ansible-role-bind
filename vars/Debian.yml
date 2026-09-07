@@ -37,25 +37,14 @@ __bind_zone_targets:
 # Main configuration file for bind
 __bind_conf_file: "/etc/bind/named.conf"
 
-# Managed options include file.
-__bind_options_file: "/etc/bind/named.conf.options"
-
-# Managed local include file.
-__bind_local_file: "/etc/bind/named.conf.local"
-
-# Includes rendered into the Debian entry point.
-__bind_main_includes:
-  - "{{ __bind_options_file }}"
-  - "{{ __bind_local_file }}"
-  - "/etc/bind/named.conf.root-hints"
-
 # Debian keeps package-provided zones in included files.
 __bind_platform_zones: []
 
 # Platform include files rendered by the standalone main configuration.
-__bind_includes: []
+__bind_includes:
+  - "/etc/bind/named.conf.root-hints"
 
-# Debian has no package-native option-level includes inside named.conf.options.
+# Debian has no package-native option-level includes.
 __bind_platform_options: []
 
 # Native BIND option values from Debian and Ubuntu bind9 packages.
@@ -67,3 +56,7 @@ __bind_options:
 __bind_logging:
   channels: []
   categories: []
+
+# Native validators for BIND configuration and zone files.
+__bind_checkconf_command: "named-checkconf %s"
+__bind_checkzone_command: "named-checkzone"

@@ -21,39 +21,112 @@ provisioner:
   log: true
   playbooks:
     converge: "../resources/playbooks/converge.yml"
-    verify: "../resources/playbooks/verify.yml"
+    verify: "verify.yml"
+    side_effect: "side_effect.yml"
+  inventory:
+    group_vars:
+      all:
+        bind_molecule_static_address: "192.0.2.80"
+        bind_molecule_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
+        bind_tsig_keys:
+          - name: "dev-ddns"
+            algorithm: "hmac-sha256"
+            secret: "{{ bind_molecule_tsig_secret }}"
+        bind_logging:
+          categories:
+            - name: "queries"
+              channels:
+                - "null"
+        bind_zones:
+          - name: "example.test"
+            type: "primary"
+            file: "db.example.test"
+            primary: "ns1.example.test."
+            email: "hostmaster.example.test."
+            ns_records:
+              - name: "ns1.example.test."
+                addresses:
+                  - type: "A"
+                    address: "192.0.2.53"
+            records:
+              - name: "www"
+                type: "A"
+                data: "{{ bind_molecule_static_address }}"
+          - name: "2.0.192.in-addr.arpa"
+            type: "primary"
+            file: "db.192.0.2"
+            primary: "ns1.example.test."
+            email: "hostmaster.example.test."
+            ns_records:
+              - name: "ns1.example.test."
+            records:
+              - name: "80"
+                type: "PTR"
+                data: "www.example.test."
+          - name: "ddns.test"
+            type: "primary"
+            dynamic: true
+            file: "db.ddns.test"
+            primary: "ns1.ddns.test."
+            email: "hostmaster.ddns.test."
+            ns_records:
+              - name: "ns1.ddns.test."
+                addresses:
+                  - type: "A"
+                    address: "192.0.2.53"
+            update_policy:
+              - action: "grant"
+                identity: "dev-ddns"
+                match_type: "zonesub"
+                types:
+                  - "A"
 verifier:
   name: "ansible"
 scenario:
+  test_sequence:
+    - "dependency"
+    - "cleanup"
+    - "destroy"
+    - "syntax"
+    - "create"
+    - "prepare"
+    - "converge"
+    - "idempotence"
+    - "side_effect"
+    - "idempotence"
+    - "check"
+    - "verify"
+    - "cleanup"
+    - "destroy"
   name: "dev"
 platforms:
   - name: "almalinux-latest-bind"
     image: "docker.io/jomrr/molecule-almalinux:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"
   - name: "debian-latest-bind"
     image: "docker.io/jomrr/molecule-debian:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"
   - name: "fedora-latest-bind"
     image: "docker.io/jomrr/molecule-fedora:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"
   - name: "opensuse-leap-latest-bind"
     image: "docker.io/jomrr/molecule-opensuse-leap:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"
   - name: "opensuse-tumbleweed-latest-bind"
     image: "docker.io/jomrr/molecule-opensuse-tumbleweed:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"
   - name: "ubuntu-latest-bind"
     image: "docker.io/jomrr/molecule-ubuntu:latest"
     pre_build_image: true
     override_command: false
-    systemd: true
+    systemd: "true"

@@ -5,15 +5,15 @@
 - name: "BIND | Validate TSIG key names"
   ansible.builtin.assert:
     that:
-      - __bind_tsig_key.name is match('^[A-Za-z0-9_.-]+$')
+      - __bind_tsig_name is match('^[A-Za-z0-9_.-]+$')
     fail_msg: >-
-      TSIG key {{ __bind_tsig_key.name }}: name may contain only letters,
+      TSIG key {{ __bind_tsig_name }}: name may contain only letters,
       digits, dots, underscores, and hyphens.
     quiet: true
-  loop: "{{ bind_tsig_keys }}"
+  loop: "{{ bind_tsig_keys | map(attribute='name') | list }}"
   loop_control:
-    loop_var: __bind_tsig_key
-    label: "{{ __bind_tsig_key.name }}"
+    loop_var: __bind_tsig_name
+    label: "{{ __bind_tsig_name }}"
 
 - name: "BIND | Validate unique TSIG key names"
   ansible.builtin.assert:
@@ -56,21 +56,10 @@
     __bind_zone.allow_update is defined or
     (__bind_zone.inline_signing | default(false) | bool)
 
-- name: "BIND | Validate mutually exclusive update mechanisms"
-  ansible.builtin.assert:
-    that:
-      - not (__bind_zone.allow_update is defined and __bind_zone.update_policy is defined)
-    fail_msg: "Zone {{ __bind_zone.name }}: allow-update and update-policy are mutually exclusive."
-    quiet: true
-  loop: "{{ bind_zones }}"
-  loop_control:
-    loop_var: __bind_zone
-    label: "{{ __bind_zone.name }}"
-
 - name: "BIND | Validate zone file declarations"
   ansible.builtin.assert:
     that:
-      - (__bind_zone.name | default('')) is match('^\\S+$')
+      - __bind_zone.name is match('^\\S+$')
       - (__bind_zone.file | default('')) is match('^[^/\\s]+$')
       - (__bind_zone.file | default('')) not in ['.', '..']
     fail_msg: "Zone {{ __bind_zone.name }}: name must not contain whitespace; file must be a file name without path separators or whitespace."
@@ -119,15 +108,3 @@
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
   when: __bind_zone.records is defined
-
-- name: "BIND | Validate update forwarding is secondary-only"
-  ansible.builtin.assert:
-    that:
-      - __bind_zone.type == 'secondary'
-    fail_msg: "Zone {{ __bind_zone.name }}: allow-update-forwarding is only valid on secondary zones."
-    quiet: true
-  loop: "{{ bind_zones }}"
-  loop_control:
-    loop_var: __bind_zone
-    label: "{{ __bind_zone.name }}"
-  when: __bind_zone.allow_update_forwarding is defined

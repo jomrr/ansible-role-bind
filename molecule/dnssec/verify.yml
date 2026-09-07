@@ -2,7 +2,7 @@
 # role: bind
 # file: molecule/dnssec/verify.yml
 
-- name: "Molecule | verify | bind dnssec"
+- name: "BIND | Verify DNSSEC"
   hosts: all
   gather_facts: false
   tasks:

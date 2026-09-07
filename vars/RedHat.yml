@@ -79,3 +79,7 @@ __bind_logging:
       file: "data/named.run"
       severity: "dynamic"
   categories: []
+
+# Native validators for BIND configuration and zone files.
+__bind_checkconf_command: "named-checkconf %s"
+__bind_checkzone_command: "named-checkzone"

@@ -203,7 +203,7 @@ bind_options:
 #       - slip 2
 #       - qps-scale 250
 
-# BIND logging channels and categories.
+# BIND logging channels and categories. Same-name entries replace platform defaults.
 bind_logging:
   channels: []
   categories: []

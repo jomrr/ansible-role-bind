@@ -2,11 +2,6 @@
 # role: bind
 # file: handlers/main.yml
 
-- name: "BIND | Validate configuration"
-  ansible.builtin.command: "{{ __bind_checkconf_command | replace('%s', __bind_conf_file) }}"
-  changed_when: false
-  listen: validate
-
 - name: "BIND | Restart service"
   ansible.builtin.systemd_service:
     name: "{{ __bind_service_name }}"

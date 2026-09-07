@@ -57,7 +57,7 @@ The following variables are part of the public role interface.
 | `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
 | `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
 | `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered inside the options block.<br>Internal defaults, platform defaults, and bind_options are merged with precedence internal, platform, then user.<br>Entries with the same name keep the first output position and use the value from the last definition.<br>Raw and include entries without a name are opaque and are rendered without deduplication.<br>Set name on a raw or include entry when it should replace an earlier same-name option.<br>Empty values omit the matching option.<br>The default includes a rate-limit entry for BIND response rate limiting. |
-| `bind_logging` | `dict` | `false` |  | BIND logging configuration with channels and categories. |
+| `bind_logging` | `dict` | `false` | channels: []<br />categories: [] | BIND logging configuration with channels and categories.<br>Platform channels and categories are extended by the supplied lists.<br>A supplied entry replaces a platform entry with the same name. |
 | `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
 | `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
 | `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Zone declarations and managed records use the Internet DNS class IN.<br>Static primary zone files are managed directly from this variable.<br>Primary zones require ns_records for the authoritative zone base.<br>Dynamic primary zone files are created only when missing with SOA and ns_records; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
@@ -71,15 +71,15 @@ The following variables are part of the public role interface.
 ## Managed Files
 
 - `/etc/bind/named.conf` on Debian-family systems
-- `/etc/bind/named.conf.options` on Debian-family systems
-- `/etc/bind/named.conf.local` on Debian-family systems
 - `/etc/named.conf` on Red Hat-family and Suse systems
 - `<platform config directory>/<key-name>.key` when TSIG keys are configured
 - `<platform zone directory>/<zone-file>` when bind_zones includes managed zone file content
 
 ## Check Mode
 
-Package and template tasks support check mode where the underlying modules support it.
+Check mode predicts changes on configured hosts; reading existing SOA serials remains read-only.
+
+- A first run in check mode requires the BIND packages and their configuration directories to exist already.
 
 ## Service Behavior
 
@@ -104,6 +104,10 @@ changes notify the restart handler.
 
 ## Operational Notes
 
+- The role is idempotent; unchanged declarations leave files, SOA serials, and the service unchanged.
+- Configuration candidates are checked before installation; replaced managed files receive module-provided backups.
+- Debian and Ubuntu use one managed named.conf; named.conf.options and named.conf.local are no longer included automatically.
+- Existing static zone serials are read with named-checkzone; changed templates advance the serial to max(previous + 1, gathered Unix timestamp).
 - The main API follows BIND's own top-level blocks.
 - Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
 - Internal defaults, platform defaults, and `bind_options` are merged with precedence internal, platform, then user.
