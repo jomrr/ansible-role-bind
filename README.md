@@ -1,6 +1,10 @@
 # Ansible Role: bind
 
-![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-bind) ![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-bind) ![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-bind) [![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-bind/dev.yml?branch=dev&event=push&label=dev)](https://github.com/jomrr/ansible-role-bind/actions/workflows/dev.yml?query=branch%3Adev) [![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-bind/main.yml?branch=main&event=push&label=main)](https://github.com/jomrr/ansible-role-bind/actions/workflows/main.yml?query=branch%3Amain)
+![GitHub](https://img.shields.io/github/license/jomrr/ansible-role-bind)
+![GitHub last commit](https://img.shields.io/github/last-commit/jomrr/ansible-role-bind)
+![GitHub issues](https://img.shields.io/github/issues-raw/jomrr/ansible-role-bind)
+[![dev](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-bind/dev.yml?branch=dev&event=push&label=dev)](https://github.com/jomrr/ansible-role-bind/actions/workflows/dev.yml?query=branch%3Adev)
+[![main](https://img.shields.io/github/actions/workflow/status/jomrr/ansible-role-bind/main.yml?branch=main&event=push&label=main)](https://github.com/jomrr/ansible-role-bind/actions/workflows/main.yml?query=branch%3Amain)
 
 Ansible role for setting up the ISC BIND DNS Server.
 
@@ -19,7 +23,8 @@ changes.
 - TSIG key files from provided key material
 - ACL, primaries, controls, options, logging, include, and DLZ clauses
 - Primary, secondary, forward, RPZ, and related zone declarations
-- TSIG-protected zone transfer and DDNS configuration through native BIND statements
+- TSIG-protected zone transfer and DDNS configuration through native BIND
+  statements
 - Managed authoritative forward and reverse zone files with SOA serial updates
 - Zone-level BIND update-policy rules
 - BIND service handler for configuration changes
@@ -45,41 +50,249 @@ collections:
 
 ## Role Variables
 
-The following variables are part of the public role interface.
+### `bind_tsig_keys`
 
-| Name | Type | Required | Default | Description |
-| ---- | ---- | -------- | ------- | ----------- |
-| `bind_tsig_keys` | `list` | `false` | [] | TSIG key declarations included from the managed local BIND configuration.<br>Store real secrets in Ansible Vault. |
-| `bind_acls` | `list` | `false` |  | Named BIND ACL declarations.<br>The default includes local, my_addresses, and bogons ACLs.<br>The my_addresses ACL is referenced by the default deny-answer-addresses option for recursive resolver hardening.<br>The bogons ACL is referenced by the default blackhole option and excludes loopback, private, shared, and ULA ranges commonly used by local clients. |
-| `bind_primaries` | `list` | `false` | [] | Named BIND primaries lists for secondary zones. |
-| `bind_controls` | `list` | `false` | [] | Native BIND controls entries rendered inside a controls block. |
-| `bind_tls` | `list` | `false` | [] | Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS zone transfer configuration. |
-| `bind_http` | `list` | `false` | [] | Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners. |
-| `bind_listeners` | `list` | `false` |  | BIND listen-on or listen-on-v6 statements rendered inside the options block.<br>Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS. |
-| `bind_options` | `list` | `false` |  | Ordered BIND option statements rendered inside the options block.<br>Internal defaults, platform defaults, and bind_options are merged with precedence internal, platform, then user.<br>Entries with the same name keep the first output position and use the value from the last definition.<br>Raw and include entries without a name are opaque and are rendered without deduplication.<br>Set name on a raw or include entry when it should replace an earlier same-name option.<br>Empty values omit the matching option.<br>The default includes a rate-limit entry for BIND response rate limiting. |
-| `bind_logging` | `dict` | `false` | channels: []<br />categories: [] | BIND logging configuration with channels and categories.<br>Platform channels and categories are extended by the supplied lists.<br>A supplied entry replaces a platform entry with the same name. |
-| `bind_includes` | `list` | `false` | [] | Additional top-level BIND include files rendered after platform default includes. |
-| `bind_dlz` | `list` | `false` | [] | Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration. |
-| `bind_zones` | `list` | `false` | [] | BIND zone declarations for primary, secondary, forward, RPZ, and related zones.<br>Zone declarations and managed records use the Internet DNS class IN.<br>Static primary zone files are managed directly from this variable.<br>Primary zones require ns_records for the authoritative zone base.<br>Dynamic primary zone files are created only when missing with SOA and ns_records; runtime records belong to DDNS updates.<br>The file option is a file name only; the role places it in the platform-native directory for the zone type. |
-| `bind_extra_statements` | `list` | `false` | [] | Additional complete top-level BIND statements for unsupported edge cases. |
-| `bind_zone_file_ttl` | `str` | `false` | `1h` | Default TTL for managed zone files. |
-| `bind_zone_file_refresh` | `str` | `false` | `1h` | Default SOA refresh interval for managed zone files. |
-| `bind_zone_file_retry` | `str` | `false` | `15m` | Default SOA retry interval for managed zone files. |
-| `bind_zone_file_expire` | `str` | `false` | `1w` | Default SOA expire interval for managed zone files. |
-| `bind_zone_file_minimum` | `str` | `false` | `1d` | Default SOA minimum TTL for managed zone files. |
+Type: `list`. Required: `false`.
+
+TSIG key declarations included from the managed local BIND configuration.
+Store real secrets in Ansible Vault.
+
+Default:
+
+```yaml
+bind_tsig_keys: []
+```
+
+### `bind_acls`
+
+Type: `list`. Required: `false`.
+
+Named BIND ACL declarations.
+The default includes local, my_addresses, and bogons ACLs.
+The my_addresses ACL is referenced by the default deny-answer-addresses option
+for recursive resolver hardening.
+The bogons ACL is referenced by the default blackhole option and excludes
+loopback, private, shared, and ULA ranges commonly used by local clients.
+
+### `bind_primaries`
+
+Type: `list`. Required: `false`.
+
+Named BIND primaries lists for secondary zones.
+
+Default:
+
+```yaml
+bind_primaries: []
+```
+
+### `bind_controls`
+
+Type: `list`. Required: `false`.
+
+Native BIND controls entries rendered inside a controls block.
+
+Default:
+
+```yaml
+bind_controls: []
+```
+
+### `bind_tls`
+
+Type: `list`. Required: `false`.
+
+Top-level BIND TLS blocks referenced by DNS-over-TLS, DNS-over-HTTPS, or TLS
+zone transfer configuration.
+
+Default:
+
+```yaml
+bind_tls: []
+```
+
+### `bind_http`
+
+Type: `list`. Required: `false`.
+
+Top-level BIND HTTP blocks referenced by DNS-over-HTTPS listeners.
+
+Default:
+
+```yaml
+bind_http: []
+```
+
+### `bind_listeners`
+
+Type: `list`. Required: `false`.
+
+BIND listen-on or listen-on-v6 statements rendered inside the options block.
+Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS.
+
+### `bind_options`
+
+Type: `list`. Required: `false`.
+
+Ordered BIND option statements rendered inside the options block.
+Internal defaults, platform defaults, and bind_options are merged with
+precedence internal, platform, then user.
+Entries with the same name keep the first output position and use the value from
+the last definition.
+Raw and include entries without a name are opaque and are rendered without
+deduplication.
+Set name on a raw or include entry when it should replace an earlier same-name
+option.
+Empty values omit the matching option.
+The default includes a rate-limit entry for BIND response rate limiting.
+
+### `bind_logging`
+
+Type: `dict`. Required: `false`.
+
+BIND logging configuration with channels and categories.
+Platform channels and categories are extended by the supplied lists.
+A supplied entry replaces a platform entry with the same name.
+
+Default:
+
+```yaml
+bind_logging:
+  channels: []
+  categories: []
+```
+
+### `bind_includes`
+
+Type: `list`. Required: `false`.
+
+Additional top-level BIND include files rendered after platform default
+includes.
+
+Default:
+
+```yaml
+bind_includes: []
+```
+
+### `bind_dlz`
+
+Type: `list`. Required: `false`.
+
+Top-level BIND DLZ blocks, for example Samba BIND_DLZ integration.
+
+Default:
+
+```yaml
+bind_dlz: []
+```
+
+### `bind_zones`
+
+Type: `list`. Required: `false`.
+
+BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
+Zone declarations and managed records use the Internet DNS class IN.
+Static primary zone files are managed directly from this variable.
+Primary zones require ns_records for the authoritative zone base.
+Dynamic primary zone files are created only when missing with SOA and
+ns_records; runtime records belong to DDNS updates.
+The file option is a file name only; the role places it in the platform-native
+directory for the zone type.
+
+Default:
+
+```yaml
+bind_zones: []
+```
+
+### `bind_extra_statements`
+
+Type: `list`. Required: `false`.
+
+Additional complete top-level BIND statements for unsupported edge cases.
+
+Default:
+
+```yaml
+bind_extra_statements: []
+```
+
+### `bind_zone_file_ttl`
+
+Type: `str`. Required: `false`.
+
+Default TTL for managed zone files.
+
+Default:
+
+```yaml
+bind_zone_file_ttl: 1h
+```
+
+### `bind_zone_file_refresh`
+
+Type: `str`. Required: `false`.
+
+Default SOA refresh interval for managed zone files.
+
+Default:
+
+```yaml
+bind_zone_file_refresh: 1h
+```
+
+### `bind_zone_file_retry`
+
+Type: `str`. Required: `false`.
+
+Default SOA retry interval for managed zone files.
+
+Default:
+
+```yaml
+bind_zone_file_retry: 15m
+```
+
+### `bind_zone_file_expire`
+
+Type: `str`. Required: `false`.
+
+Default SOA expire interval for managed zone files.
+
+Default:
+
+```yaml
+bind_zone_file_expire: 1w
+```
+
+### `bind_zone_file_minimum`
+
+Type: `str`. Required: `false`.
+
+Default SOA minimum TTL for managed zone files.
+
+Default:
+
+```yaml
+bind_zone_file_minimum: 1d
+```
 
 ## Managed Files
 
 - `/etc/bind/named.conf` on Debian-family systems
 - `/etc/named.conf` on Red Hat-family and Suse systems
 - `<platform config directory>/<key-name>.key` when TSIG keys are configured
-- `<platform zone directory>/<zone-file>` when bind_zones includes managed zone file content
+- `<platform zone directory>/<zone-file>` when bind_zones includes managed zone
+  file content
 
 ## Check Mode
 
-Check mode predicts changes on configured hosts; reading existing SOA serials remains read-only.
+Check mode predicts changes on configured hosts; reading existing SOA serials
+remains read-only.
 
-- A first run in check mode requires the BIND packages and their configuration directories to exist already.
+- A first run in check mode requires the BIND packages and their configuration
+  directories to exist already.
 
 ## Service Behavior
 
@@ -96,7 +309,8 @@ changes notify the restart handler.
 - Recursive defaults explicitly limit cache access to local clients.
 - Recursive defaults limit concurrent recursive clients.
 - Version, hostname, and server-id disclosure are disabled by default.
-- Recursive defaults deny answers that resolve names to the resolver's own addresses.
+- Recursive defaults deny answers that resolve names to the resolver's own
+  addresses.
 - Recursive defaults blackhole bogon source addresses.
 - Recursive defaults limit outstanding fetches per upstream server and zone.
 - Response rate limiting is enabled by default.
@@ -104,30 +318,50 @@ changes notify the restart handler.
 
 ## Operational Notes
 
-- The role is idempotent; unchanged declarations leave files, SOA serials, and the service unchanged.
-- Configuration candidates are checked before installation; replaced managed files receive module-provided backups.
-- Debian and Ubuntu use one managed named.conf; named.conf.options and named.conf.local are no longer included automatically.
-- Existing static zone serials are read with named-checkzone; changed templates advance the serial to max(previous + 1, gathered Unix timestamp).
+- The role is idempotent; unchanged declarations leave files, SOA serials, and
+  the service unchanged.
+- Configuration candidates are checked before installation; replaced managed
+  files receive module-provided backups.
+- Debian and Ubuntu use one managed named.conf; named.conf.options and
+  named.conf.local are no longer included automatically.
+- Existing static zone serials are read with named-checkzone; changed templates
+  advance the serial to max(previous + 1, gathered Unix timestamp).
 - The main API follows BIND's own top-level blocks.
 - Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
-- Internal defaults, platform defaults, and `bind_options` are merged with precedence internal, platform, then user.
-- Same-name option entries are deduplicated; the first occurrence keeps the output position and the last definition supplies the rendered value.
-- Raw and include option entries without `name` are opaque and are rendered unchanged. Add `name` to a raw or include entry only when it should replace an earlier same-name option.
-- Platform default includes are rendered automatically before additional `bind_includes`.
-- `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in `bind_zones`.
-- Managed zone files are declared in `bind_zones`; `file` is a file name only and the role selects the platform-native static, dynamic, or secondary directory.
-- Primary zones declare their mandatory authoritative NS base through `ns_records`.
-- Dynamic primary zone files are created only when missing with SOA and `ns_records`; runtime records belong to DDNS updates.
+- Internal defaults, platform defaults, and `bind_options` are merged with
+  precedence internal, platform, then user.
+- Same-name option entries are deduplicated; the first occurrence keeps the
+  output position and the last definition supplies the rendered value.
+- Raw and include option entries without `name` are opaque and are rendered
+  unchanged. Add `name` to a raw or include entry only when it should replace an
+  earlier same-name option.
+- Platform default includes are rendered automatically before additional
+  `bind_includes`.
+- `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in
+  `bind_zones`.
+- Managed zone files are declared in `bind_zones`; `file` is a file name only
+  and the role selects the platform-native static, dynamic, or secondary
+  directory.
+- Primary zones declare their mandatory authoritative NS base through
+  `ns_records`.
+- Dynamic primary zone files are created only when missing with SOA and
+  `ns_records`; runtime records belong to DDNS updates.
 - Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
-- Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust `deny-answer-addresses` accordingly.
-- Keep a `bogons` ACL when replacing `bind_acls`, or adjust `blackhole` accordingly.
-- Primary and secondary relationships are declared through `bind_primaries`, `bind_tsig_keys`, `bind_options`, and `bind_zones`.
-- Changing provided TSIG key material updates rendered key files and restarts BIND.
+- Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust
+  `deny-answer-addresses` accordingly.
+- Keep a `bogons` ACL when replacing `bind_acls`, or adjust `blackhole`
+  accordingly.
+- Primary and secondary relationships are declared through `bind_primaries`,
+  `bind_tsig_keys`, `bind_options`, and `bind_zones`.
+- Changing provided TSIG key material updates rendered key files and restarts
+  BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
-- Use RPZ zones and `response-policy` statements for DNSBL-style response filtering.
-- Override the `rate-limit` entry in `bind_options` to tune BIND response rate limiting.
+- Use RPZ zones and `response-policy` statements for DNSBL-style response
+  filtering.
+- Override the `rate-limit` entry in `bind_options` to tune BIND response rate
+  limiting.
 
 ## Supported Platforms
 
@@ -154,6 +388,7 @@ Apply the default localhost-only BIND configuration.
   roles:
     - role: jomrr.bind
 ```
+
 ### Recursive resolver for a local network
 
 Allow local clients to query a recursive resolver with explicit upstream forwarders.
@@ -223,6 +458,7 @@ Allow local clients to query a recursive resolver with explicit upstream forward
               - 10.53.0.1
               - 10.54.0.1
 ```
+
 ### Authoritative response rate limiting
 
 Configure BIND response rate limiting through the native options block.
@@ -254,6 +490,7 @@ Configure BIND response rate limiting through the native options block.
               - slip 2
               - qps-scale 250
 ```
+
 ### DNSBL with RPZ
 
 Enable a local response policy zone for DNSBL-style filtering.
@@ -318,6 +555,7 @@ Enable a local response policy zone for DNSBL-style filtering.
                 type: CNAME
                 data: .
 ```
+
 ### Samba BIND_DLZ primary
 
 Load Samba's BIND_DLZ database module and keep zones inside Samba.
@@ -369,6 +607,7 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
             statements:
               - database "dlopen /usr/lib64/samba/bind9/dlz_bind9.so"
 ```
+
 ### Secondary for Samba DNS primary
 
 Configure secondary zones that transfer from a Samba BIND_DLZ primary.
@@ -478,6 +717,7 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
             forwarders:
               - 10.55.0.1
 ```
+
 ### Authoritative primary
 
 Configure an authoritative primary zone and render the zone file.
@@ -538,6 +778,7 @@ Configure an authoritative primary zone and render the zone file.
                 type: PTR
                 data: ns1.example.com.
 ```
+
 ### Authoritative secondary
 
 Configure an authoritative secondary zone.
