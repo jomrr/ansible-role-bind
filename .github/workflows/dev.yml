@@ -50,7 +50,7 @@ jobs:
 
       - name: Cache Ansible Collections
         if: hashFiles('collections.yml') != ''
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.ansible/collections
           key: collections-${{ hashFiles('collections.yml') }}
