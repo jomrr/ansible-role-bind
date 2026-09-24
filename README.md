@@ -362,16 +362,10 @@ BIND.
 
 ## Operational Notes
 
-- The role is idempotent; unchanged declarations leave files, SOA serials, and
-  the service unchanged.
-- Configuration candidates are checked before installation; replaced managed
-  files receive module-provided backups.
 - Debian and Ubuntu use one managed named.conf; named.conf.options and
   named.conf.local are no longer included automatically.
 - Existing static zone serials are read with named-checkzone; changed templates
   advance the serial to max(previous + 1, gathered Unix timestamp).
-- The main API follows BIND's own top-level blocks.
-- Use variables such as `bind_acls`, `bind_options`, and `bind_zones`.
 - Internal defaults, platform defaults, and `bind_options` are merged with
   precedence internal, platform, then user.
 - Same-name option entries are deduplicated; the first occurrence keeps the
@@ -394,7 +388,6 @@ BIND.
   through `ns_records`.
 - Dynamic primary zone files are created only when missing with SOA and
   `ns_records`; runtime records belong to DDNS updates.
-- Reverse zones use PTR records in the same zone template.
 - Use explicit ACLs before widening query or recursion access.
 - Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust
   `deny-answer-addresses` accordingly.
@@ -402,8 +395,6 @@ BIND.
   accordingly.
 - Primary and secondary relationships are declared through `bind_primaries`,
   `bind_tsig_keys`, `bind_options`, and `bind_zones`.
-- Changing provided TSIG key material updates rendered key files and restarts
-  BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
 - Use `bind_response_policy` and RPZ zones for DNSBL-style response filtering.
