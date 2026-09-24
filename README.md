@@ -26,6 +26,8 @@ changes.
 - TSIG-protected zone transfer and DDNS configuration through native BIND
   statements
 - Managed authoritative forward and reverse zone files with SOA serial updates
+- Ordered response policies and validated external RPZ master files downloaded
+  through the controller
 - Zone-level BIND update-policy rules
 - BIND service handler for configuration changes
 
@@ -39,6 +41,8 @@ changes.
 ## Requirements
 
 - Target hosts need platform repositories that provide ISC BIND packages.
+- Source zones require controller-side HTTPS access and a working local RNDC
+  control channel on the primary.
 
 ## Dependencies
 
@@ -162,6 +166,20 @@ option.
 Empty values omit the matching option.
 Response rate limiting is opt-in through a rate-limit option entry.
 
+### `bind_response_policy`
+
+Type: `dict`. Required: `false`.
+
+Ordered response policy zones and global BIND RPZ modifiers.
+No statement is rendered for an empty mapping or an empty zones list.
+Do not also define response-policy in bind_options.
+
+Default:
+
+```yaml
+bind_response_policy: {}
+```
+
 ### `bind_logging`
 
 Type: `dict`. Required: `false`.
@@ -210,7 +228,9 @@ Type: `list`. Required: `false`.
 BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
 Zone declarations and managed records use the Internet DNS class IN.
 Static primary zone files are managed directly from this variable.
-Primary zones require ns_records for the authoritative zone base.
+Primary zones without source require ns_records for the authoritative zone base.
+Source zones import complete external master files through the controller,
+preserving their contents and serials.
 Dynamic primary zone files are created only when missing with SOA and
 ns_records; runtime records belong to DDNS updates.
 The file option is a file name only; the role places it in the platform-native
@@ -310,11 +330,17 @@ remains read-only.
 
 - A first run in check mode requires the BIND packages and their configuration
   directories to exist already.
+- Source files are downloaded on the controller and compared with installed
+  files in check mode.
+- Source candidates are not staged, checked with named-checkzone,
+  serial-validated, installed, or reloaded in check mode.
 
 ## Service Behavior
 
 The role enables and starts the BIND service. Managed configuration
-changes notify the restart handler.
+changes notify the restart handler. External source content updates only
+reload changed zones through RNDC, without restarting or globally reloading
+BIND.
 
 ### Handlers
 
@@ -364,8 +390,8 @@ changes notify the restart handler.
 - Managed zone files are declared in `bind_zones`; `file` is a file name only
   and the role selects the platform-native static, dynamic, or secondary
   directory.
-- Primary zones declare their mandatory authoritative NS base through
-  `ns_records`.
+- Primary zones without `source` declare their mandatory authoritative NS base
+  through `ns_records`.
 - Dynamic primary zone files are created only when missing with SOA and
   `ns_records`; runtime records belong to DDNS updates.
 - Reverse zones use PTR records in the same zone template.
@@ -380,8 +406,7 @@ changes notify the restart handler.
   BIND.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
-- Use RPZ zones and `response-policy` statements for DNSBL-style response
-  filtering.
+- Use `bind_response_policy` and RPZ zones for DNSBL-style response filtering.
 - Add a `rate-limit` entry to `bind_options` to enable BIND response rate
   limiting for authoritative DNS.
 - `bind_zone_file_minimum` sets SOA.MINIMUM for negative caching, not a lower
@@ -403,6 +428,123 @@ changes notify the restart handler.
 | Debian | Ubuntu | latest | [jomrr/molecule-ubuntu:latest](https://hub.docker.com/r/jomrr/molecule-ubuntu) |
 
 ## Example Playbook
+
+### Response policy zones
+
+The first matching policy zone takes precedence. The local zone is
+listed first and uses `rpz-passthru.` to allow a name blocked by a feed.
+Each host declares its policies and zones explicitly; no inventory
+discovery or automatic primary/secondary pairing takes place.
+The listeners permit transfers between these two servers; recursive
+client access retains the localhost-only defaults unless configured separately.
+
+A source file supplies its own SOA and NS records. The controller
+downloads it over HTTPS on each role run; redirects are rejected.
+The defaults are `timeout: 30` and `validate_certs: true`. There are
+no scheduled refreshes, and secondaries never download source URLs.
+
+Only complete `$TTL` and `$ORIGIN` directive tokens at the beginning
+of a line are accepted. Whitespace and parentheses prefixes, other
+directives including quoted `$INCLUDE`, and invalid master files are
+rejected before installation. Changed contents require a newer serial
+according to RFC 1982; identical files need no serial increment.
+The role never rewrites a source file's contents or serial.
+
+`allow-query { localhost; }` restricts direct access to policy data;
+RPZ still applies to recursive client queries. Transfer permission
+is configured separately. A feed with only `localhost.` as its NS
+needs explicit `also-notify` to notify the secondary.
+
+`ixfr-from-differences yes` can reduce transfers for large feeds.
+The example uses an explicit writable journal under `/var/named/dynamic`
+on Red Hat systems. Use `/var/lib/bind` on Debian/Ubuntu or
+`/var/lib/named/dyn` on openSUSE. These directories come from packages;
+the role does not create or change their permissions.
+
+Zone reloads require a writable local RNDC control channel. RNDC
+errors fail the run without falling back to a global reload or restart.
+
+```yaml
+---
+- name: Configure RPZ primary
+  hosts: dns_primary
+  gather_facts: true
+  roles:
+    - role: jomrr.bind
+      vars:
+        bind_listeners:
+          - name: listen-on
+            entries: [127.0.0.1, 10.53.0.10]
+          - name: listen-on-v6
+            entries: [none]
+        bind_response_policy:
+          zones:
+            - name: local.rpz.example.com
+            - name: feed.rpz.example.com
+          options:
+            - break-dnssec no
+        bind_zones:
+          - name: local.rpz.example.com
+            type: primary
+            file: db.local.rpz.example.com
+            primary: localhost.
+            email: hostmaster.example.com.
+            ns_records:
+              - name: localhost.
+            records:
+              - name: allowed.example.com
+                type: CNAME
+                data: rpz-passthru.
+            statements:
+              - allow-query { localhost; }
+              - allow-transfer { 10.53.0.11; }
+              - also-notify { 10.53.0.11; }
+              - notify yes
+          - name: feed.rpz.example.com
+            type: primary
+            file: db.feed.rpz.example.com
+            source:
+              url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
+            statements:
+              - allow-query { localhost; }
+              - allow-transfer { 10.53.0.11; }
+              - also-notify { 10.53.0.11; }
+              - notify yes
+              - ixfr-from-differences yes
+              - journal "/var/named/dynamic/db.feed.rpz.example.com.jnl"
+- name: Configure RPZ secondary
+  hosts: dns_secondary
+  gather_facts: true
+  roles:
+    - role: jomrr.bind
+      vars:
+        bind_listeners:
+          - name: listen-on
+            entries: [127.0.0.1, 10.53.0.11]
+          - name: listen-on-v6
+            entries: [none]
+        bind_response_policy:
+          zones:
+            - name: local.rpz.example.com
+            - name: feed.rpz.example.com
+          options:
+            - break-dnssec no
+        bind_zones:
+          - name: local.rpz.example.com
+            type: secondary
+            file: db.local.rpz.example.com
+            primaries:
+              - 10.53.0.10
+            statements:
+              - allow-query { localhost; }
+          - name: feed.rpz.example.com
+            type: secondary
+            file: db.feed.rpz.example.com
+            primaries:
+              - 10.53.0.10
+            statements:
+              - allow-query { localhost; }
+```
 
 ### Local resolver
 
@@ -621,9 +763,9 @@ Enable a local response policy zone for DNSBL-style filtering.
               - window 5
               - slip 2
               - qps-scale 250
-          - name: response-policy
-            entries:
-              - zone "rpz.example.com"
+        bind_response_policy:
+          zones:
+            - name: rpz.example.com
         bind_zones:
           - name: rpz.example.com
             type: primary

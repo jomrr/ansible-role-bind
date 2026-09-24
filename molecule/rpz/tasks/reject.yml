@@ -1,0 +1,38 @@
+---
+# role: bind
+# file: molecule/rpz/tasks/reject.yml
+
+- name: BIND | Publish rejected source candidate
+  ansible.builtin.copy:
+    content: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/files/feed-v2.zone') }}\n{{ __bind_rpz_rejection.content }}\n"
+    dest: "{{ bind_rpz_fixture_dir }}/feed.zone"
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+
+- name: BIND | Verify source rejection
+  block:
+    - name: BIND | Attempt to install rejected source
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+
+    - name: BIND | Fail when rejected source was accepted
+      ansible.builtin.fail:
+        msg: "Source candidate was unexpectedly accepted: {{ __bind_rpz_rejection.name }}"
+  rescue:
+    - name: BIND | Verify expected rejection reason
+      ansible.builtin.assert:
+        that:
+          - __bind_rpz_rejection.error in ansible_failed_result.msg
+        quiet: true
+
+- name: BIND | Read installed feed after rejection
+  ansible.builtin.stat:
+    path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
+  register: __bind_rpz_after_rejection
+
+- name: BIND | Verify rejected source did not replace installed file
+  ansible.builtin.assert:
+    that:
+      - __bind_rpz_before_rejection.stat.checksum == __bind_rpz_after_rejection.stat.checksum
+    quiet: true

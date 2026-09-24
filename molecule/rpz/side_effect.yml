@@ -1,0 +1,155 @@
+---
+# role: bind
+# file: molecule/rpz/side_effect.yml
+
+- name: BIND | Verify initial feed and capture service state
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: BIND | Load platform paths for verification
+      ansible.builtin.include_vars: "{{ playbook_dir }}/../../vars/{{ ansible_facts.os_family }}.yml"
+
+    - name: BIND | Verify initial feed blocks the test domain
+      ansible.builtin.command:
+        argv: [dig, "@127.0.0.1", blocked.example.test, A, +tries=1, +time=2]
+      register: __bind_rpz_blocked
+      changed_when: false
+      until: "__bind_rpz_blocked.stdout is search('status: NXDOMAIN')"
+      retries: 20
+      delay: 1
+
+    - name: BIND | Read initial BIND process
+      ansible.builtin.command:
+        argv: [systemctl, show, --property=MainPID, --value, "{{ __bind_service_name }}"]
+      register: __bind_rpz_initial_pid
+      changed_when: false
+
+    - name: BIND | Read initial unrelated zone serial
+      ansible.builtin.command:
+        argv: [dig, "@127.0.0.1", local.rpz.example.com, SOA, +short]
+      register: __bind_rpz_initial_local_soa
+      changed_when: false
+
+- name: BIND | Exercise source update and rejection
+  hosts: bind_rpz_primary
+  gather_facts: true
+  tasks:
+    - name: BIND | Load source zone platform path
+      ansible.builtin.include_vars: "{{ playbook_dir }}/../../vars/{{ ansible_facts.os_family }}.yml"
+
+    - name: BIND | Read installed feed before check mode
+      ansible.builtin.stat:
+        path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
+      register: __bind_rpz_before_check
+
+    - name: BIND | Publish updated feed on controller
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/feed-v2.zone"
+        dest: "{{ bind_rpz_fixture_dir }}/feed.zone"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+
+    - name: BIND | Preview changed source without installation
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python | dirname }}/ansible-playbook"
+          - --inventory
+          - "{{ lookup('ansible.builtin.env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/inventory"
+          - --limit
+          - bind_rpz_primary
+          - --check
+          - "{{ playbook_dir }}/../resources/playbooks/converge.yml"
+      delegate_to: localhost
+      become: false
+      register: __bind_rpz_check
+      changed_when: false
+
+    - name: BIND | Verify check mode predicts the source update
+      ansible.builtin.assert:
+        that:
+          - __bind_rpz_check.stdout is search('changed=[1-9]')
+        quiet: true
+
+    - name: BIND | Read installed feed after check mode
+      ansible.builtin.stat:
+        path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
+      register: __bind_rpz_after_check
+
+    - name: BIND | Verify check mode left installed source unchanged
+      ansible.builtin.assert:
+        that:
+          - __bind_rpz_before_check.stat.checksum == __bind_rpz_after_check.stat.checksum
+        quiet: true
+
+    - name: BIND | Install and activate updated source
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+
+    - name: BIND | Read installed feed before rejection cases
+      ansible.builtin.stat:
+        path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
+      register: __bind_rpz_before_rejection
+
+    - name: BIND | Exercise rejected source candidates
+      ansible.builtin.include_tasks: tasks/reject.yml
+      loop:
+        - name: parenthesized continuation
+          content: "(\n   $INCLUDE /nonexistent-probe-1\n)"
+          error: forbidden master file directive
+        - name: quoted lowercase continuation
+          content: "( ; comment\n{{ 'CQ==' | b64decode }}\"$include\" /nonexistent-probe-2 )"
+          error: forbidden master file directive
+        - name: closed parentheses prefix
+          content: "() $INCLUDE /nonexistent-probe-3"
+          error: forbidden master file directive
+        - name: closing parenthesis continuation
+          content: "(\n) $INCLUDE /nonexistent-probe-4"
+          error: forbidden master file directive
+        - name: CR separated directive
+          content: "extra.example.test CNAME .\r$INCLUDE /nonexistent-probe-5"
+          error: forbidden master file directive
+        - name: directive name prefix
+          content: "$TTLfoo 60"
+          error: forbidden master file directive
+        - name: indented allowed directive
+          content: "  $TTL 60"
+          error: forbidden master file directive
+        - name: changed contents with unchanged serial
+          content: "extra.example.test CNAME ."
+          error: newer SOA serial
+      loop_control:
+        loop_var: __bind_rpz_rejection
+        label: "{{ __bind_rpz_rejection.name }}"
+
+    - name: BIND | Restore valid HTTPS feed
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/feed-v2.zone"
+        dest: "{{ bind_rpz_fixture_dir }}/feed.zone"
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+
+- name: BIND | Verify feed update did not restart BIND or rewrite unrelated zones
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: BIND | Read BIND process after source update
+      ansible.builtin.command:
+        argv: [systemctl, show, --property=MainPID, --value, "{{ __bind_service_name }}"]
+      register: __bind_rpz_updated_pid
+      changed_when: false
+
+    - name: BIND | Read unrelated zone serial after source update
+      ansible.builtin.command:
+        argv: [dig, "@127.0.0.1", local.rpz.example.com, SOA, +short]
+      register: __bind_rpz_updated_local_soa
+      changed_when: false
+
+    - name: BIND | Verify unchanged process and unrelated zone
+      ansible.builtin.assert:
+        that:
+          - __bind_rpz_initial_pid.stdout | int > 0
+          - __bind_rpz_initial_pid.stdout == __bind_rpz_updated_pid.stdout
+          - __bind_rpz_initial_local_soa.stdout == __bind_rpz_updated_local_soa.stdout
+        quiet: true

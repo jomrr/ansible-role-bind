@@ -65,9 +65,9 @@ provisioner:
               - "qps-scale 250"
           - name: "dnssec-validation"
             value: "no"
-          - name: "response-policy"
-            entries:
-              - "zone \"{{ bind_molecule_dnsbl_zone_name }}\""
+        bind_response_policy:
+          zones:
+            - name: "{{ bind_molecule_dnsbl_zone_name }}"
         bind_zones:
           - name: "{{ bind_molecule_dnsbl_zone_name }}"
             type: "primary"

@@ -1,0 +1,5 @@
+$TTL 60
+@ IN SOA localhost. hostmaster.example.com. ( 1700000000 60 60 3600 60 )
+@ IN NS localhost.
+allowed.example.test CNAME .
+blocked.example.test CNAME .

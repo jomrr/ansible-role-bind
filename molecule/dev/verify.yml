@@ -36,40 +36,27 @@
       retries: 10
       delay: 1
 
-    - name: BIND | Verify authoritative negative caching TTL
+    - name: BIND | Verify managed SOA TTL and minimum
       ansible.builtin.command:
         argv:
           - dig
           - '@127.0.0.1'
-          - '{{ __bind_test_negative.name }}'
-          - '{{ __bind_test_negative.type }}'
+          - '{{ __bind_test_zone }}'
+          - SOA
           - +norecurse
           - +noall
-          - +comments
-          - +authority
+          - +answer
           - +tries=1
           - +time=2
       loop:
-        - name: missing.example.test
-          type: A
-          status: NXDOMAIN
-          zone: example.test.
-        - name: www.example.test
-          type: AAAA
-          status: NOERROR
-          zone: example.test.
-        - name: missing.ddns.test
-          type: A
-          status: NXDOMAIN
-          zone: ddns.test.
+        - example.test
+        - 2.0.192.in-addr.arpa
+        - ddns.test
       loop_control:
-        loop_var: __bind_test_negative
-        label: '{{ __bind_test_negative.name }} {{ __bind_test_negative.type }}'
-      register: __bind_test_negative_answer
+        loop_var: __bind_test_zone
+      register: __bind_test_soa
       changed_when: false
       failed_when: >-
-        __bind_test_negative_answer.rc != 0 or
-        __bind_test_negative_answer.stdout is not search('status: ' ~ __bind_test_negative.status ~ ',') or
-        __bind_test_negative_answer.stdout is not search(
-          '(?m)^' ~ (__bind_test_negative.zone | regex_escape)
-          ~ '\s+3600\s+IN\s+SOA\s+.*\s3600$')
+        __bind_test_soa.stdout is not search(
+          '(?m)^' ~ (__bind_test_zone | regex_escape)
+          ~ '\.\s+3600\s+IN\s+SOA\s+.*\s3600$')

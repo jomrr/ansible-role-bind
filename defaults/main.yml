@@ -199,6 +199,19 @@ bind_options:
 #       - slip 2
 #       - qps-scale 250
 
+# Ordered response policy zones and optional global BIND RPZ modifiers.
+bind_response_policy: {}
+# bind_response_policy:
+#   zones:
+#     - name: rpz.example.com
+#       policy: given
+#       log: true
+#       max_policy_ttl: 1h
+#       recursive_only: true
+#   options:
+#     - qname-wait-recurse no
+#     - break-dnssec no
+
 # BIND logging channels and categories. Same-name entries replace platform defaults.
 bind_logging:
   channels: []
@@ -227,12 +240,21 @@ bind_dlz: []
 #       - database "dlopen /usr/lib64/samba/bind9/dlz_bind9.so"
 
 # BIND IN-class zone declarations and managed static zone file contents. Primary
-# zones require ns_records for the authoritative zone base. Dynamic primary
+# zones without source require ns_records for the authoritative zone base. Dynamic primary
 # zones get a SOA/ns_records bootstrap and runtime records belong to DDNS.
 # The file value is a file name only; the role places it in the platform-native
 # directory selected by the zone type and dynamic flag.
 bind_zones: []
 # bind_zones:
+#   - name: feed.rpz.example.com
+#     type: primary
+#     file: db.feed.rpz.example.com
+#     source:
+#       url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
+#       timeout: 30
+#       validate_certs: true
+#     statements:
+#       - allow-query { localhost; }
 #   - name: example.com
 #     comment: main forward zone
 #     type: secondary

@@ -1,0 +1,93 @@
+---
+# role: bind
+# file: tasks/source_validate.yml
+
+- name: "BIND | Stage source zone candidate"
+  become: true
+  become_user: root
+  ansible.builtin.copy:
+    src: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
+    dest: "{{ __bind_source_stage.path }}/{{ __bind_zone.file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  diff: false
+  changed_when: false
+  register: __bind_source_candidate
+
+- name: "BIND | Inspect installed source zone"
+  become: true
+  become_user: root
+  ansible.builtin.stat:
+    path: "{{ __bind_zone.file_path }}"
+    get_mime: false
+    get_attributes: false
+  register: __bind_source_existing
+
+- name: "BIND | Check changed source zone"
+  when: __bind_source_candidate.checksum != __bind_source_existing.stat.checksum | default('')
+  block:
+    - name: "BIND | Read source master file directives"
+      become: true
+      become_user: root
+      ansible.builtin.shell:
+        cmd: >-
+          set -o pipefail;
+          tr '\r' '\n' < {{ (__bind_source_stage.path ~ '/' ~ __bind_zone.file) | quote }} |
+          grep -aEo '^[[:space:]()]*"?[$][^[:space:]"();]*"?'
+        executable: /bin/bash
+      environment:
+        LC_ALL: C
+      register: __bind_source_directives
+      changed_when: false
+      failed_when: __bind_source_directives.rc not in [0, 1]
+
+    - name: "BIND | Reject unsafe source master file directives"
+      ansible.builtin.assert:
+        that:
+          - >-
+            __bind_source_directives.stdout_lines |
+            reject('match', '(?i)^(\$(TTL|ORIGIN)|"\$(TTL|ORIGIN)")$') | list | length == 0
+        fail_msg: >-
+          Zone {{ __bind_zone.name }}: source contains a forbidden master file directive.
+          Only complete $TTL and $ORIGIN tokens without whitespace or parentheses prefixes are allowed.
+        quiet: true
+
+    - name: "BIND | Validate source zone candidate"
+      become: true
+      become_user: root
+      ansible.builtin.command:
+        argv:
+          - "{{ __bind_checkzone_command }}"
+          - "{{ __bind_zone.name }}"
+          - "{{ __bind_source_stage.path }}/{{ __bind_zone.file }}"
+      environment:
+        LC_ALL: C
+      register: __bind_source_candidate_check
+      changed_when: false
+
+    - name: "BIND | Read installed source zone serial"
+      become: true
+      become_user: root
+      ansible.builtin.command:
+        argv:
+          - "{{ __bind_checkzone_command }}"
+          - "{{ __bind_zone.name }}"
+          - "{{ __bind_zone.file_path }}"
+      environment:
+        LC_ALL: C
+      register: __bind_source_existing_check
+      changed_when: false
+      when: __bind_source_existing.stat.exists
+
+    - name: "BIND | Require a newer source zone serial"
+      ansible.builtin.assert:
+        that:
+          - >-
+            0 < (
+              (__bind_source_candidate_check.stdout | regex_findall('loaded serial ([0-9]+)') | first | int) -
+              (__bind_source_existing_check.stdout | regex_findall('loaded serial ([0-9]+)') | first | int)
+            ) % 4294967296 < 2147483648
+        fail_msg: "Zone {{ __bind_zone.name }}: changed source contents require a newer SOA serial according to RFC 1982."
+        quiet: true
+      when: __bind_source_existing.stat.exists

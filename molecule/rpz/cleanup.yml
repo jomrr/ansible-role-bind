@@ -1,0 +1,29 @@
+---
+# role: bind
+# file: molecule/rpz/cleanup.yml
+
+- name: BIND | Stop controller HTTPS fixture
+  hosts: localhost
+  gather_facts: false
+  vars:
+    __bind_rpz_fixture_dir: "{{ lookup('ansible.builtin.env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/rpz-https"
+  tasks:
+    - name: BIND | Inspect fixture process file
+      ansible.builtin.stat:
+        path: "{{ __bind_rpz_fixture_dir }}/server.pid"
+      register: __bind_rpz_pid_file
+
+    - name: BIND | Stop fixture process
+      ansible.builtin.command:
+        argv:
+          - kill
+          - "{{ lookup('ansible.builtin.file', __bind_rpz_fixture_dir ~ '/server.pid') | trim }}"
+      register: __bind_rpz_stop
+      changed_when: __bind_rpz_stop.rc == 0
+      failed_when: __bind_rpz_stop.rc != 0 and 'No such process' not in __bind_rpz_stop.stderr
+      when: __bind_rpz_pid_file.stat.exists
+
+    - name: BIND | Remove HTTPS fixture files
+      ansible.builtin.file:
+        path: "{{ __bind_rpz_fixture_dir }}"
+        state: absent

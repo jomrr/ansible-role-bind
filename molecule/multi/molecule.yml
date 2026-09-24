@@ -20,7 +20,7 @@ provisioner:
       pipelining: true
   log: true
   playbooks:
-    prepare: "../resources/playbooks/prepare.yml"
+    prepare: "../resources/playbooks/prepare_ddns.yml"
     converge: "../resources/playbooks/converge.yml"
     verify: "verify.yml"
   inventory:

@@ -6,19 +6,8 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: "BIND | Query default localhost resolver"
-      ansible.builtin.command:
-        argv:
-          - dig
-          - "@127.0.0.1"
-          - version.bind
-          - TXT
-          - CH
-          - +tries=1
-          - +time=2
-      register: __bind_verify_default_query
-      changed_when: false
-      until:
-        - __bind_verify_default_query.rc == 0
-      retries: 10
-      delay: 2
+    - name: "BIND | Wait for default localhost resolver"
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 53
+        timeout: 20

@@ -235,6 +235,65 @@ argument_specs:
             type: raw
             required: false
             description: Raw BIND configuration lines.
+      bind_response_policy:
+        type: dict
+        required: false
+        default: {}
+        description:
+          - Ordered response policy zones and global BIND RPZ modifiers.
+          - No statement is rendered for an empty mapping or an empty zones list.
+          - Do not also define response-policy in bind_options.
+        options:
+          zones:
+            type: list
+            elements: dict
+            required: false
+            description: Ordered primary or secondary zone references; required for a nonempty
+              mapping.
+            required_if:
+              - - policy
+                - cname
+                - - cname
+            options:
+              name:
+                type: str
+                required: true
+                description: Name of exactly one primary or secondary zone declared in bind_zones.
+              policy:
+                type: str
+                required: false
+                choices:
+                  - given
+                  - disabled
+                  - passthru
+                  - drop
+                  - tcp-only
+                  - nxdomain
+                  - nodata
+                  - cname
+                description: Optional policy override for this zone.
+              cname:
+                type: str
+                required: false
+                description: CNAME target, required and only allowed with policy cname.
+              log:
+                type: bool
+                required: false
+                description: Whether to log policy actions for this zone.
+              max_policy_ttl:
+                type: str
+                required: false
+                description: Maximum policy TTL as seconds or a BIND duration such as 1h.
+              recursive_only:
+                type: bool
+                required: false
+                description: Whether to apply this policy only to recursive queries.
+          options:
+            type: list
+            elements: str
+            required: false
+            description: Native global modifiers rendered after the ordered zone list, without
+              semicolons.
       bind_logging:
         type: dict
         required: false
@@ -334,11 +393,36 @@ argument_specs:
           - BIND zone declarations for primary, secondary, forward, RPZ, and related zones.
           - Zone declarations and managed records use the Internet DNS class IN.
           - Static primary zone files are managed directly from this variable.
-          - Primary zones require ns_records for the authoritative zone base.
+          - Primary zones without source require ns_records for the authoritative zone base.
+          - Source zones import complete external master files through the controller, preserving
+            their contents and serials.
           - Dynamic primary zone files are created only when missing with SOA and ns_records;
             runtime records belong to DDNS updates.
           - The file option is a file name only; the role places it in the platform-native
             directory for the zone type.
+        mutually_exclusive:
+          - - source
+            - records
+          - - source
+            - ns_records
+          - - source
+            - primary
+          - - source
+            - email
+          - - source
+            - dynamic
+          - - source
+            - ttl
+          - - source
+            - origin
+          - - source
+            - refresh
+          - - source
+            - retry
+          - - source
+            - expire
+          - - source
+            - minimum
         options:
           name:
             type: str
@@ -368,6 +452,33 @@ argument_specs:
             description:
               - Zone file name without path separators or whitespace.
               - The role uses platform-native static, dynamic, or secondary zone directories.
+          source:
+            type: dict
+            required: false
+            description:
+              - Complete external master file for a primary zone, downloaded by the Ansible
+                controller during each run.
+              - Cannot be combined with local record, SOA, TTL, origin, or dynamic zone
+                fields.
+              - Changed contents require a newer RFC-1982 serial; identical files are left
+                unchanged.
+              - Check mode compares contents only, without native zone or serial validation.
+            options:
+              url:
+                type: str
+                required: true
+                description: HTTPS download URL; redirects are rejected.
+              timeout:
+                type: int
+                required: false
+                default: 30
+                description: Download timeout in seconds.
+              validate_certs:
+                type: bool
+                required: false
+                default: true
+                description: Validate the HTTPS server certificate using the controller
+                  trust store.
           primaries:
             type: list
             elements: raw
@@ -483,7 +594,7 @@ argument_specs:
             required: false
             description:
               - Authoritative NS records rendered into primary zone files.
-              - Required for primary zones.
+              - Required for primary zones without source.
             options:
               name:
                 type: str

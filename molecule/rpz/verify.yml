@@ -1,0 +1,33 @@
+---
+# role: bind
+# file: molecule/rpz/verify.yml
+
+- name: BIND | Verify response policy zones
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: BIND | Wait for source zone serial
+      ansible.builtin.command:
+        argv: [dig, "@127.0.0.1", feed.rpz.example.com, SOA, +short, +tries=1, +time=2]
+      register: __bind_rpz_soa
+      changed_when: false
+      until: "'1700000001' in __bind_rpz_soa.stdout"
+      retries: 30
+      delay: 1
+
+    - name: BIND | Verify allowlist and updated feed
+      ansible.builtin.command:
+        argv: [dig, "@127.0.0.1", "{{ __bind_rpz_query.name }}", A, +short, +tries=1, +time=2]
+      loop:
+        - name: allowed.example.test
+          address: 10.53.0.80
+        - name: blocked.example.test
+          address: 10.53.0.81
+      loop_control:
+        loop_var: __bind_rpz_query
+        label: "{{ __bind_rpz_query.name }}"
+      register: __bind_rpz_answer
+      changed_when: false
+      until: __bind_rpz_answer.stdout_lines == [__bind_rpz_query.address]
+      retries: 20
+      delay: 1

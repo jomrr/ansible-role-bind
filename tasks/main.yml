@@ -51,7 +51,9 @@
 
 - name: "BIND | Configure static zone files"
   ansible.builtin.include_tasks: "zone.yml"
-  loop: "{{ __bind_effective_zones | selectattr('target_class', 'defined') | selectattr('target_class', 'equalto', 'static') | list }}"
+  loop: >-
+    {{ __bind_effective_zones | selectattr('target_class', 'defined') |
+       selectattr('target_class', 'equalto', 'static') | rejectattr('source', 'defined') | list }}
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
@@ -74,6 +76,10 @@
     label: "{{ __bind_zone.name }}"
   notify: restart
 
+- name: "BIND | Import source zone files"
+  ansible.builtin.include_tasks: "source.yml"
+  when: __bind_effective_zones | selectattr('source', 'defined') | list | length > 0
+
 - name: "BIND | Generate main configuration file"
   ansible.builtin.template:
     src: "named.conf.j2"
@@ -93,3 +99,21 @@
     name: "{{ __bind_service_name }}"
     state: started
     enabled: true
+
+- name: "BIND | Reload changed source zones"
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv:
+      - "{{ __bind_rndc_command }}"
+      - reload
+      - "{{ __bind_source_result.__bind_zone.name }}"
+      - IN
+  loop: "{{ __bind_source_installations.results | default([]) | selectattr('changed') | list }}"
+  loop_control:
+    loop_var: __bind_source_result
+    label: "{{ __bind_source_result.__bind_zone.name }}"
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - __bind_effective_zones | selectattr('source', 'defined') | list | length > 0

@@ -82,7 +82,9 @@
   loop_control:
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
-  when: __bind_zone.type == 'primary'
+  when:
+    - __bind_zone.type == 'primary'
+    - __bind_zone.source is not defined
 
 - name: "BIND | Validate NS records are primary-only"
   ansible.builtin.assert:
@@ -108,3 +110,46 @@
     loop_var: __bind_zone
     label: "{{ __bind_zone.name }}"
   when: __bind_zone.records is defined
+
+- name: "BIND | Validate source zone declarations"
+  ansible.builtin.assert:
+    that:
+      - __bind_zone.type == 'primary'
+      - (__bind_zone.source.url | ansible.builtin.urlsplit('scheme')) == 'https'
+      - (__bind_zone.source.url | ansible.builtin.urlsplit('hostname')) | length > 0
+      - (__bind_zone.source.timeout | default(30)) > 0
+    fail_msg: "Zone {{ __bind_zone.name }}: source requires a primary zone, an HTTPS URL and a positive timeout."
+    quiet: true
+  loop: "{{ bind_zones }}"
+  loop_control:
+    loop_var: __bind_zone
+    label: "{{ __bind_zone.name }}"
+  when: __bind_zone.source is defined
+
+- name: "BIND | Validate response policy declaration"
+  ansible.builtin.assert:
+    that:
+      - bind_response_policy.zones is defined
+      - >-
+        not (bind_response_policy.zones | default([])) or
+        bind_options | selectattr('name', 'defined') |
+        selectattr('name', 'equalto', 'response-policy') | list | length == 0
+    fail_msg: "Response policy requires zones and must not also be declared in bind_options."
+    quiet: true
+  when: bind_response_policy | length > 0
+
+- name: "BIND | Validate response policy zone references"
+  ansible.builtin.assert:
+    that:
+      - >-
+        bind_zones | selectattr('name', 'equalto', __bind_policy.name) |
+        selectattr('type', 'in', ['primary', 'secondary']) | list | length == 1
+      - __bind_policy.cname is not defined or __bind_policy.policy | default('given') == 'cname'
+    fail_msg: >-
+      Response policy {{ __bind_policy.name }}: name must reference exactly one primary or secondary;
+      cname is only valid with policy: cname.
+    quiet: true
+  loop: "{{ bind_response_policy.zones | default([]) }}"
+  loop_control:
+    loop_var: __bind_policy
+    label: "{{ __bind_policy.name }}"

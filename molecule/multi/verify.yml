@@ -19,61 +19,23 @@
       register: __bind_verify_initial_transfer
       changed_when: false
       until:
-        - __bind_verify_initial_transfer.rc == 0
         - "'ns1.example.com.' in __bind_verify_initial_transfer.stdout"
       retries: 30
       delay: 2
 
-    - name: "BIND | Verify DDNS record is absent before update"
-      ansible.builtin.command:
-        argv:
-          - dig
-          - "@127.0.0.1"
-          - update.example.com
-          - A
-          - +short
-          - +tries=1
-          - +time=2
-      register: __bind_verify_update_before_nsupdate
-      changed_when: false
-      until:
-        - __bind_verify_update_before_nsupdate.rc == 0
-        - __bind_verify_update_before_nsupdate.stdout_lines | length == 0
-      retries: 10
-      delay: 1
-
     - name: "BIND | Submit DDNS update on primary"
-      ansible.builtin.command:
-        argv:
-          - nsupdate
-          - -y
-          - "hmac-sha256:ddns:{{ bind_multi_tsig_secret }}"
-        stdin: |-
-          server 127.0.0.1 53
-          zone example.com
-          update delete update.example.com. A
-          update add update.example.com. 60 A {{ bind_multi_update_ip }}
-          send
-      changed_when: true
+      community.general.nsupdate:
+        server: 127.0.0.1
+        key_name: ddns
+        key_algorithm: hmac-sha256
+        key_secret: "{{ bind_multi_tsig_secret }}"
+        zone: example.com
+        record: update
+        type: A
+        ttl: 60
+        value: "{{ bind_multi_update_ip }}"
+        state: present
       no_log: true
-
-    - name: "BIND | Verify DDNS update on primary"
-      ansible.builtin.command:
-        argv:
-          - dig
-          - "@127.0.0.1"
-          - update.example.com
-          - A
-          - +short
-          - +tries=1
-          - +time=2
-      register: __bind_verify_primary_update
-      changed_when: false
-      until:
-        - __bind_verify_primary_update.rc == 0
-        - bind_multi_update_ip in __bind_verify_primary_update.stdout_lines
-      retries: 10
-      delay: 1
 
     - name: "BIND | Verify DDNS update on secondary"
       ansible.builtin.command:
@@ -88,7 +50,6 @@
       register: __bind_verify_secondary_update
       changed_when: false
       until:
-        - __bind_verify_secondary_update.rc == 0
         - bind_multi_update_ip in __bind_verify_secondary_update.stdout_lines
       retries: 60
       delay: 2

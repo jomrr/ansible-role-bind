@@ -1,0 +1,178 @@
+---
+# role: bind
+# file: molecule/rpz/molecule.yml
+
+dependency:
+  name: "galaxy"
+driver:
+  name: "podman"
+provisioner:
+  name: "ansible"
+  config_options:
+    defaults:
+      forks: 8
+      interpreter_python: "auto_silent"
+      allow_world_readable_tmpfiles: true
+      callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
+      callback_result_format: "yaml"
+      remote_tmp: "/tmp/.ansible/tmp"
+    ssh_connection:
+      pipelining: true
+  log: true
+  playbooks:
+    prepare: "prepare.yml"
+    converge: "../resources/playbooks/converge.yml"
+    verify: "verify.yml"
+    side_effect: "side_effect.yml"
+    cleanup: "cleanup.yml"
+  env:
+    SSL_CERT_FILE: "${MOLECULE_EPHEMERAL_DIRECTORY}/rpz-https/cert.pem"
+  inventory:
+    group_vars:
+      all:
+        bind_rpz_fixture_dir: "{{ lookup('ansible.builtin.env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/rpz-https"
+        bind_listeners:
+          - name: "listen-on"
+            entries:
+              - "any"
+          - name: "listen-on-v6"
+            entries:
+              - "none"
+        bind_options:
+          - name: "recursion"
+            value: "yes"
+          - name: "allow-query"
+            entries:
+              - "any"
+          - name: "allow-query-cache"
+            entries:
+              - "any"
+          - name: "allow-recursion"
+            entries:
+              - "any"
+          - name: "allow-transfer"
+            entries:
+              - "none"
+          - name: "dnssec-validation"
+            value: "no"
+        bind_response_policy:
+          zones:
+            - name: "local.rpz.example.com"
+              policy: "given"
+              log: false
+              max_policy_ttl: 60
+              recursive_only: true
+            - name: "feed.rpz.example.com"
+          options:
+            - "qname-wait-recurse no"
+            - "break-dnssec no"
+            - "min-update-interval 0"
+      bind_rpz_primary:
+        bind_zones:
+          - name: "example.test"
+            type: "primary"
+            file: "db.example.test"
+            primary: "localhost."
+            email: "hostmaster.example.test."
+            ns_records:
+              - name: "localhost."
+            records:
+              - name: "allowed"
+                type: "A"
+                data: "10.53.0.80"
+              - name: "blocked"
+                type: "A"
+                data: "10.53.0.81"
+            statements:
+              - "allow-transfer { 172.29.252.11; }"
+              - "also-notify { 172.29.252.11; }"
+              - "notify yes"
+          - name: "local.rpz.example.com"
+            type: "primary"
+            file: "db.local.rpz.example.com"
+            primary: "localhost."
+            email: "hostmaster.example.com."
+            ns_records:
+              - name: "localhost."
+            records:
+              - name: "allowed.example.test"
+                type: "CNAME"
+                data: "rpz-passthru."
+            statements:
+              - "allow-query { localhost; }"
+              - "allow-transfer { 172.29.252.11; }"
+              - "also-notify { 172.29.252.11; }"
+              - "notify yes"
+          - name: "feed.rpz.example.com"
+            type: "primary"
+            file: "db.feed.rpz.example.com"
+            source:
+              url: "https://127.0.0.1:18443/feed.zone"
+            statements:
+              - "allow-query { localhost; }"
+              - "allow-transfer { 172.29.252.11; }"
+              - "also-notify { 172.29.252.11; }"
+              - "notify yes"
+              - "ixfr-from-differences yes"
+              - "journal \"{{ (lookup('ansible.builtin.file', lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY')\
+                \ ~ '/vars/' ~ ansible_facts.os_family ~ '.yml') | from_yaml).__bind_zone_targets.dynamic.path }}/db.feed.rpz.example.com.jnl\""
+      bind_rpz_secondary:
+        bind_zones:
+          - name: "example.test"
+            type: "secondary"
+            file: "db.example.test"
+            primaries:
+              - "172.29.252.10"
+          - name: "local.rpz.example.com"
+            type: "secondary"
+            file: "db.local.rpz.example.com"
+            primaries:
+              - "172.29.252.10"
+            statements:
+              - "allow-query { localhost; }"
+          - name: "feed.rpz.example.com"
+            type: "secondary"
+            file: "db.feed.rpz.example.com"
+            primaries:
+              - "172.29.252.10"
+            statements:
+              - "allow-query { localhost; }"
+verifier:
+  name: "ansible"
+scenario:
+  test_sequence:
+    - "dependency"
+    - "cleanup"
+    - "destroy"
+    - "syntax"
+    - "create"
+    - "prepare"
+    - "converge"
+    - "idempotence"
+    - "side_effect"
+    - "idempotence"
+    - "check"
+    - "verify"
+    - "cleanup"
+    - "destroy"
+  name: "rpz"
+platforms:
+  - name: "bind-rpz-primary"
+    image: "docker.io/${uns:-jomrr}/molecule-${img:-fedora}:${tag:-latest}"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-rpz"
+    subnet: "172.29.252.0/24"
+    ip: "172.29.252.10"
+    groups:
+      - "bind_rpz_primary"
+  - name: "bind-rpz-secondary"
+    image: "docker.io/${uns:-jomrr}/molecule-${img:-fedora}:${tag:-latest}"
+    pre_build_image: true
+    override_command: false
+    systemd: true
+    network: "bind-rpz"
+    ip: "172.29.252.11"
+    groups:
+      - "bind_rpz_secondary"

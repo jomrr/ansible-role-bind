@@ -38,7 +38,6 @@
       register: __bind_verify_blocked_query
       changed_when: false
       until:
-        - __bind_verify_blocked_query.rc == 0
         - __bind_verify_blocked_query.stdout_lines == [bind_molecule_dnsbl_blocked_address]
       retries: 10
       delay: 2

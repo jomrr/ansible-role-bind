@@ -1,0 +1,107 @@
+---
+# role: bind
+# file: tasks/source.yml
+
+- name: "BIND | Import validated source files"
+  block:
+    - name: "BIND | Create controller download directory"
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-bind-source-
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      register: __bind_source_download
+
+    - name: "BIND | Download source files on controller"
+      ansible.builtin.uri:
+        url: "{{ __bind_zone.source.url }}"
+        dest: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
+        method: GET
+        follow_redirects: none
+        status_code: 200
+        timeout: "{{ __bind_zone.source.timeout | default(30) }}"
+        validate_certs: "{{ __bind_zone.source.validate_certs | default(true) }}"
+        return_content: false
+        mode: "0600"
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
+      loop_control:
+        loop_var: __bind_zone
+        label: "{{ __bind_zone.name }}"
+
+    - name: "BIND | Compare source files in check mode"
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        src: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
+        dest: "{{ __bind_zone.file_path }}"
+        owner: "{{ __bind_zone_targets.static.owner }}"
+        group: "{{ __bind_zone_targets.static.group }}"
+        mode: "{{ __bind_zone_targets.static.mode }}"
+      diff: false
+      loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
+      loop_control:
+        loop_var: __bind_zone
+        label: "{{ __bind_zone.name }}"
+      when: ansible_check_mode
+
+    - name: "BIND | Stage and install source files"
+      when: not ansible_check_mode
+      block:
+        - name: "BIND | Create source staging directory"
+          become: true
+          become_user: root
+          ansible.builtin.tempfile:
+            state: directory
+            prefix: ansible-bind-source-
+          register: __bind_source_stage
+          changed_when: false
+
+        - name: "BIND | Validate each source file before installation"
+          ansible.builtin.include_tasks: source_validate.yml
+          loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
+          loop_control:
+            loop_var: __bind_zone
+            label: "{{ __bind_zone.name }}"
+
+        - name: "BIND | Install validated source files"
+          become: true
+          become_user: root
+          ansible.builtin.copy:
+            src: "{{ __bind_source_stage.path }}/{{ __bind_zone.file }}"
+            dest: "{{ __bind_zone.file_path }}"
+            remote_src: true
+            owner: "{{ __bind_zone_targets.static.owner }}"
+            group: "{{ __bind_zone_targets.static.group }}"
+            mode: "{{ __bind_zone_targets.static.mode }}"
+            backup: true
+          diff: false
+          register: __bind_source_installations
+          loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
+          loop_control:
+            loop_var: __bind_zone
+            label: "{{ __bind_zone.name }}"
+      always:
+        - name: "BIND | Remove source staging directory"
+          become: true
+          become_user: root
+          ansible.builtin.file:
+            path: "{{ __bind_source_stage.path }}"
+            state: absent
+          changed_when: false
+          when: __bind_source_stage.path is defined
+  always:
+    - name: "BIND | Remove controller download directory"
+      ansible.builtin.file:
+        path: "{{ __bind_source_download.path }}"
+        state: absent
+      delegate_to: localhost
+      become: false
+      check_mode: false
+      changed_when: false
+      when: __bind_source_download.path is defined

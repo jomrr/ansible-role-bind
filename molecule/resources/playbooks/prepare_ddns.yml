@@ -1,0 +1,22 @@
+---
+# role: bind
+# file: molecule/resources/playbooks/prepare_ddns.yml
+
+- name: BIND | Prepare distribution repositories
+  ansible.builtin.import_playbook: prepare.yml
+
+- name: BIND | Prepare DDNS tests
+  hosts: all
+  gather_facts: true
+  vars:
+    __bind_ddns_packages:
+      Debian: python3-dnspython
+      RedHat: python3-dns
+      Suse: python3-dnspython
+  tasks:
+    - name: BIND | Install dnspython for DDNS tests
+      become: true
+      become_user: root
+      ansible.builtin.package:
+        name: "{{ __bind_ddns_packages[ansible_facts.os_family] }}"
+        state: present

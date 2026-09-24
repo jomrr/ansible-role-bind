@@ -18,19 +18,21 @@
           - +time=2
       register: __bind_test_soa_before
       changed_when: false
+
     - name: BIND | Add a runtime DDNS record
-      ansible.builtin.command:
-        argv:
-          - nsupdate
-          - -y
-          - hmac-sha256:dev-ddns:{{ bind_molecule_tsig_secret }}
-        stdin: |
-          server 127.0.0.1 53
-          zone ddns.test
-          update add runtime.ddns.test. 60 A 192.0.2.90
-          send
-      changed_when: true
+      community.general.nsupdate:
+        server: 127.0.0.1
+        key_name: dev-ddns
+        key_algorithm: hmac-sha256
+        key_secret: "{{ bind_molecule_tsig_secret }}"
+        zone: ddns.test
+        record: runtime
+        type: A
+        ttl: 60
+        value: 192.0.2.90
+        state: present
       no_log: true
+
     - name: BIND | Change the existing static record
       ansible.builtin.include_role:
         name: '{{ lookup(''ansible.builtin.env'', ''MOLECULE_PROJECT_DIRECTORY'') }}'
@@ -38,6 +40,7 @@
         bind_molecule_static_address: 192.0.2.81
         bind_validate_except:
           - example.test
+
     - name: BIND | Resolve changed static record
       ansible.builtin.command:
         argv:
@@ -54,6 +57,7 @@
         - __bind_test_changed.stdout_lines == ['192.0.2.81']
       retries: 10
       delay: 1
+
     - name: BIND | Read changed static zone serial
       ansible.builtin.command:
         argv:
@@ -66,12 +70,14 @@
           - +time=2
       register: __bind_test_soa_after
       changed_when: false
+
     - name: BIND | Verify the static serial advanced
       ansible.builtin.assert:
         that:
           - __bind_test_soa_after.stdout.split()[2] | int == [(__bind_test_soa_before.stdout.split()[2] | int + 1),
             (ansible_facts.date_time.epoch | int)] | max
         quiet: true
+
     - name: BIND | Restore the declared static record
       ansible.builtin.include_role:
         name: '{{ lookup(''ansible.builtin.env'', ''MOLECULE_PROJECT_DIRECTORY'') }}'

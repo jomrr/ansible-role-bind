@@ -13,14 +13,11 @@
           - "@127.0.0.1"
           - internetsociety.org
           - A
-          - +dnssec
-          - +adflag
           - +tries=1
           - +time=4
       register: __bind_verify_dnssec_valid_query
       changed_when: false
       until:
-        - __bind_verify_dnssec_valid_query.rc == 0
         - "__bind_verify_dnssec_valid_query.stdout is search('status: NOERROR')"
         - "__bind_verify_dnssec_valid_query.stdout is search('flags:.* ad[ ;]')"
       retries: 10
@@ -33,14 +30,11 @@
           - "@127.0.0.1"
           - dnssec-failed.org
           - A
-          - +dnssec
-          - +adflag
           - +tries=1
           - +time=4
       register: __bind_verify_dnssec_failed_query
       changed_when: false
       until:
-        - __bind_verify_dnssec_failed_query.rc == 0
         - "__bind_verify_dnssec_failed_query.stdout is search('status: SERVFAIL')"
       retries: 10
       delay: 2

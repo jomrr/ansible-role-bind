@@ -122,6 +122,13 @@ options {
 {% endif %}
 {% endif %}
 {% endfor %}
+{% if bind_response_policy.zones | default([]) %}
+    response-policy {
+{% for __bind_policy in bind_response_policy.zones %}
+        zone "{{ __bind_policy.name }}"{% if __bind_policy.policy is defined %} policy {{ __bind_policy.policy }}{% if __bind_policy.policy == 'cname' %} {{ __bind_policy.cname }}{% endif %}{% endif %}{% if __bind_policy.log is defined %} log {{ __bind_policy.log | ternary('yes', 'no') }}{% endif %}{% if __bind_policy.max_policy_ttl is defined %} max-policy-ttl {{ __bind_policy.max_policy_ttl }}{% endif %}{% if __bind_policy.recursive_only is defined %} recursive-only {{ __bind_policy.recursive_only | ternary('yes', 'no') }}{% endif %};
+{% endfor %}
+    }{% for __bind_modifier in bind_response_policy.options | default([]) %} {{ __bind_modifier }}{% endfor %};
+{% endif %}
 };
 {% set __bind_logging_channels = (__bind_logging.channels + (bind_logging.channels | default([]))) | reverse | unique(attribute='name', case_sensitive=true) | reverse | list %}
 {% set __bind_logging_categories = (__bind_logging.categories + (bind_logging.categories | default([]))) | reverse | unique(attribute='name', case_sensitive=true) | reverse | list %}
