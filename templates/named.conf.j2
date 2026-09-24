@@ -7,7 +7,11 @@ include "{{ __bind_tsig_key_dir }}/{{ __bind_key.name }}.key";
 {% if bind_tsig_keys %}
 
 {% endif %}
-{% for __bind_acl in bind_acls %}
+{% set __bind_named_acls = {} %}
+{% for __bind_acl in __bind_acls + bind_acls %}
+{% set __bind_unused = __bind_named_acls.update({__bind_acl.name: __bind_acl}) %}
+{% endfor %}
+{% for __bind_acl in __bind_named_acls.values() %}
 acl "{{ __bind_acl.name }}" {
 {% for __bind_entry in __bind_acl.entries %}
     {{ __bind_entry }};

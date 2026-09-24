@@ -35,23 +35,6 @@ provisioner:
             value: "only"
           - name: "forwarders"
             entries: "{{ ansible_facts.dns.nameservers }}"
-          - name: "qname-minimization"
-            value: "strict"
-          - name: "deny-answer-addresses"
-            entries:
-              - "my_addresses"
-          - name: "blackhole"
-            entries:
-              - "bogons"
-          - name: "allow-query-cache"
-            entries:
-              - "local"
-          - name: "recursive-clients"
-            value: 300
-          - name: "fetches-per-server"
-            value: "100 fail"
-          - name: "fetches-per-zone"
-            value: "200 fail"
           - name: "rate-limit"
             entries:
               - "responses-per-second 5"

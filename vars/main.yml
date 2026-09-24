@@ -2,6 +2,90 @@
 # role: bind
 # file: vars/main.yml
 
+# Baseline ACLs retained unless a user replaces the same name.
+__bind_acls:
+  - name: "local"
+    entries:
+      - "localhost"
+  - name: "my_addresses"
+    entries:
+      - "localhost"
+  - name: "bogons"
+    entries:
+      - "0.0.0.0/8"
+      - "169.254.0.0/16"
+      - "192.0.2.0/24"
+      - "198.18.0.0/15"
+      - "198.51.100.0/24"
+      - "203.0.113.0/24"
+      - "224.0.0.0/4"
+      - "240.0.0.0/4"
+      - "::/128"
+      - "::ffff:0:0/96"
+      - "100::/64"
+      - "2001:db8::/32"
+      - "fe80::/10"
+      - "ff00::/8"
+
+# Recursive security baseline merged before platform and user options.
+__bind_options:
+  - name: "recursion"
+    value: "yes"
+  - name: "qname-minimization"
+    value: "strict"
+  - name: "deny-answer-addresses"
+    entries:
+      - "my_addresses"
+  - name: "blackhole"
+    entries:
+      - "bogons"
+  - name: "allow-query"
+    entries:
+      - "local"
+  - name: "allow-query-cache"
+    entries:
+      - "local"
+  - name: "allow-recursion"
+    entries:
+      - "local"
+  - name: "allow-transfer"
+    entries:
+      - "none"
+  - name: "dnssec-validation"
+    value: "auto"
+  - name: "validate-except"
+    entries: "{{ bind_validate_except }}"
+  - name: "edns-udp-size"
+    value: 1232
+  - name: "max-udp-size"
+    value: 1232
+  - name: "max-clients-per-query"
+    value: 50
+  - name: "tcp-clients"
+    value: 100
+  - name: "recursive-clients"
+    value: 300
+  - name: "max-cache-size"
+    value: "512M"
+  - name: "max-cache-ttl"
+    value: 86400
+  - name: "max-recursion-depth"
+    value: 5
+  - name: "max-recursion-queries"
+    value: 50
+  - name: "fetches-per-server"
+    value: "100 fail"
+  - name: "fetches-per-zone"
+    value: "200 fail"
+  - name: "hostname"
+    value: "none"
+  - name: "server-id"
+    value: "none"
+  - name: "minimal-responses"
+    value: "yes"
+  - name: "version"
+    value: "none"
+
 # Native SOA serial marker used by managed zone files.
 __bind_zone_serial_regexp: '(?m)^([ \t]*)([0-9]+)([ \t]*;[ \t]*[Ss]erial[ \t]*)$'
 

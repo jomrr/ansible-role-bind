@@ -42,17 +42,13 @@ __bind_platform_zones:
     type: "hint"
     file: "/etc/named.ca"
 
-# Red Hat crypto policy include rendered inside the options block.
-__bind_platform_options:
-  - include: "/etc/crypto-policies/back-ends/bind.config"
-
 # Default included config files
 __bind_includes:
   - "/etc/named.rfc1912.zones"
   - "/etc/named.root.key"
 
-# Native BIND option values from Red Hat-family bind packages.
-__bind_options:
+# Native BIND option values and crypto policy from Red Hat-family bind packages.
+__bind_platform_options:
   - name: "directory"
     value: '"/var/named"'
   - name: "managed-keys-directory"
@@ -71,6 +67,7 @@ __bind_options:
     value: '"/run/named/named.pid"'
   - name: "session-keyfile"
     value: '"/run/named/session.key"'
+  - include: "/etc/crypto-policies/back-ends/bind.config"
 
 # Native BIND logging values from Red Hat-family bind packages.
 __bind_logging:

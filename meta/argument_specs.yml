@@ -40,9 +40,16 @@ argument_specs:
         type: list
         elements: dict
         required: false
+        default: []
         description:
-          - Named BIND ACL declarations.
-          - The default includes local, my_addresses, and bogons ACLs.
+          - Additional named BIND ACLs or complete same-name replacements of internal ACLs.
+          - The internal baseline includes local, my_addresses, and bogons ACLs, even when
+            this list is empty.
+          - Entries with the same name keep the first output position and use the last complete
+            definition; address lists are not combined.
+          - Include localhost explicitly when replacing local if local queries must remain
+            allowed.
+          - Empty entries render an empty ACL; they do not remove the declaration.
           - The my_addresses ACL is referenced by the default deny-answer-addresses option
             for recursive resolver hardening.
           - The bogons ACL is referenced by the default blackhole option and excludes loopback,
@@ -192,14 +199,19 @@ argument_specs:
         default: []
         description:
           - Domains permanently excluded from DNSSEC validation, including their subdomains.
-          - Referenced by the default bind_options list; replacing that list removes this
-            binding.
+          - Referenced by the internal validate-except option; additional bind_options preserve
+            this binding.
+          - An explicit validate-except entry in bind_options replaces the internal definition.
       bind_options:
         type: list
         elements: dict
         required: false
+        default: []
         description:
-          - Ordered BIND option statements rendered inside the options block.
+          - Additional BIND option statements or complete same-name overrides of internal
+            and platform defaults.
+          - The internal recursive security baseline remains active when this list is empty
+            or adds other options.
           - Internal defaults, platform defaults, and bind_options are merged with precedence
             internal, platform, then user.
           - Entries with the same name keep the first output position and use the value
@@ -207,7 +219,8 @@ argument_specs:
           - Raw and include entries without a name are opaque and are rendered without deduplication.
           - Set name on a raw or include entry when it should replace an earlier same-name
             option.
-          - Empty values omit the matching option.
+          - An empty string value omits the matching option; empty entries render an empty
+            block.
           - Response rate limiting is opt-in through a rate-limit option entry.
         options:
           name:

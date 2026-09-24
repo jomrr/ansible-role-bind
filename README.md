@@ -73,12 +73,24 @@ bind_tsig_keys: []
 
 Type: `list`. Required: `false`.
 
-Named BIND ACL declarations.
-The default includes local, my_addresses, and bogons ACLs.
+Additional named BIND ACLs or complete same-name replacements of internal ACLs.
+The internal baseline includes local, my_addresses, and bogons ACLs, even when
+this list is empty.
+Entries with the same name keep the first output position and use the last
+complete definition; address lists are not combined.
+Include localhost explicitly when replacing local if local queries must remain
+allowed.
+Empty entries render an empty ACL; they do not remove the declaration.
 The my_addresses ACL is referenced by the default deny-answer-addresses option
 for recursive resolver hardening.
 The bogons ACL is referenced by the default blackhole option and excludes
 loopback, private, shared, and ULA ranges commonly used by local clients.
+
+Default:
+
+```yaml
+bind_acls: []
+```
 
 ### `bind_primaries`
 
@@ -141,8 +153,10 @@ Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS.
 Type: `list`. Required: `false`.
 
 Domains permanently excluded from DNSSEC validation, including their subdomains.
-Referenced by the default bind_options list; replacing that list removes this
-binding.
+Referenced by the internal validate-except option; additional bind_options
+preserve this binding.
+An explicit validate-except entry in bind_options replaces the internal
+definition.
 
 Default:
 
@@ -154,7 +168,10 @@ bind_validate_except: []
 
 Type: `list`. Required: `false`.
 
-Ordered BIND option statements rendered inside the options block.
+Additional BIND option statements or complete same-name overrides of internal
+and platform defaults.
+The internal recursive security baseline remains active when this list is empty
+or adds other options.
 Internal defaults, platform defaults, and bind_options are merged with
 precedence internal, platform, then user.
 Entries with the same name keep the first output position and use the value from
@@ -163,8 +180,15 @@ Raw and include entries without a name are opaque and are rendered without
 deduplication.
 Set name on a raw or include entry when it should replace an earlier same-name
 option.
-Empty values omit the matching option.
+An empty string value omits the matching option; empty entries render an empty
+block.
 Response rate limiting is opt-in through a rate-limit option entry.
+
+Default:
+
+```yaml
+bind_options: []
+```
 
 ### `bind_response_policy`
 
@@ -375,8 +399,12 @@ BIND.
   earlier same-name option.
 - `bind_validate_except` permanently excludes the listed domains and their
   subdomains from DNSSEC validation. Its default is `[]`, with no exceptions.
-  The default `bind_options` list references this variable; replacing that list
-  removes the reference unless explicitly included again.
+  The internal `validate-except` option references this variable; additional
+  `bind_options` preserve the reference. An explicit `validate-except` entry
+  replaces the internal definition.
+- `bind_options: []` retains the internal security baseline and platform
+  defaults. Override individual options by name; `value: ""` suppresses an
+  option, while `entries: []` renders an empty block.
 - Platform default includes are rendered automatically before additional
   `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in
@@ -389,10 +417,9 @@ BIND.
 - Dynamic primary zone files are created only when missing with SOA and
   `ns_records`; runtime records belong to DDNS updates.
 - Use explicit ACLs before widening query or recursion access.
-- Keep a `my_addresses` ACL when replacing `bind_acls`, or adjust
-  `deny-answer-addresses` accordingly.
-- Keep a `bogons` ACL when replacing `bind_acls`, or adjust `blackhole`
-  accordingly.
+- `bind_acls` adds ACLs or replaces entire same-name definitions; it never
+  combines their address lists. Unmentioned internal ACLs remain intact. Include
+  `localhost` explicitly when replacing `local` to retain local access.
 - Primary and secondary relationships are declared through `bind_primaries`,
   `bind_tsig_keys`, `bind_options`, and `bind_zones`.
 - Use zone-level `update_policy` for granular DDNS permissions on primary zones.
@@ -570,10 +597,10 @@ retaining all other default options.
 ### Recursive resolver for a local network
 
 Allow local clients to query a recursive resolver with explicit upstream
-forwarders. Defining `bind_options` replaces the role's default list, so
-this example includes the complete recursive security baseline and keeps
-the `bind_validate_except` reference. Listeners are configured separately
-through `bind_listeners`; response rate limiting is not enabled.
+forwarders while retaining the internal security baseline and the
+`bind_validate_except` reference. The `local` ACL replaces the entire
+internal definition: `localhost` must be listed explicitly to retain
+local query access. Listeners are configured through `bind_listeners`.
 
 ```yaml
 ---
@@ -583,6 +610,11 @@ through `bind_listeners`; response rate limiting is not enabled.
   roles:
     - role: jomrr.bind
       vars:
+        bind_acls:
+          - name: local
+            entries:
+              - localhost
+              - 10.53.0.0/24
         bind_listeners:
           - name: listen-on
             port: 53
@@ -594,65 +626,6 @@ through `bind_listeners`; response rate limiting is not enabled.
             entries:
               - none
         bind_options:
-          - name: recursion
-            value: "yes"
-          - name: qname-minimization
-            value: strict
-          - name: deny-answer-addresses
-            entries:
-              - my_addresses
-          - name: blackhole
-            entries:
-              - bogons
-          - name: allow-query
-            entries:
-              - 127.0.0.1
-              - 10.53.0.0/24
-          - name: allow-query-cache
-            entries:
-              - 127.0.0.1
-              - 10.53.0.0/24
-          - name: allow-recursion
-            entries:
-              - 127.0.0.1
-              - 10.53.0.0/24
-          - name: allow-transfer
-            entries:
-              - none
-          - name: dnssec-validation
-            value: auto
-          - name: validate-except
-            entries: "{{ bind_validate_except }}"
-          - name: edns-udp-size
-            value: 1232
-          - name: max-udp-size
-            value: 1232
-          - name: max-clients-per-query
-            value: 50
-          - name: tcp-clients
-            value: 100
-          - name: recursive-clients
-            value: 300
-          - name: max-cache-size
-            value: 512M
-          - name: max-cache-ttl
-            value: 86400
-          - name: max-recursion-depth
-            value: 5
-          - name: max-recursion-queries
-            value: 50
-          - name: fetches-per-server
-            value: 100 fail
-          - name: fetches-per-zone
-            value: 200 fail
-          - name: hostname
-            value: none
-          - name: server-id
-            value: none
-          - name: minimal-responses
-            value: "yes"
-          - name: version
-            value: none
           - name: forward
             value: only
           - name: forwarders
@@ -698,15 +671,6 @@ on recursive resolvers it can delay legitimate repeated queries.
           - name: allow-recursion
             entries:
               - none
-          - name: allow-transfer
-            entries:
-              - none
-          - name: hostname
-            value: none
-          - name: server-id
-            value: none
-          - name: version
-            value: none
           - name: rate-limit
             entries:
               - responses-per-second 5
@@ -748,25 +712,6 @@ Enable a local response policy zone for DNSBL-style filtering.
     - role: jomrr.bind
       vars:
         bind_options:
-          - name: recursion
-            value: "yes"
-          - name: qname-minimization
-            value: strict
-          - name: deny-answer-addresses
-            entries:
-              - my_addresses
-          - name: blackhole
-            entries:
-              - bogons
-          - name: allow-query-cache
-            entries:
-              - local
-          - name: recursive-clients
-            value: 300
-          - name: fetches-per-server
-            value: 100 fail
-          - name: fetches-per-zone
-            value: 200 fail
           - name: rate-limit
             entries:
               - responses-per-second 5
@@ -813,28 +758,12 @@ Load Samba's BIND_DLZ database module and keep zones inside Samba.
     - role: jomrr.bind
       vars:
         bind_options:
-          - name: recursion
-            value: "yes"
-          - name: qname-minimization
-            value: strict
-          - name: deny-answer-addresses
-            entries:
-              - my_addresses
-          - name: blackhole
-            entries:
-              - bogons
           - name: allow-query
             entries:
               - localhost
           - name: allow-query-cache
             entries:
               - localhost
-          - name: recursive-clients
-            value: 300
-          - name: fetches-per-server
-            value: 100 fail
-          - name: fetches-per-zone
-            value: 200 fail
           - name: rate-limit
             entries:
               - responses-per-second 5
@@ -890,18 +819,11 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
               - none
           - name: transfer-source
             value: 10.53.0.20
-          - name: recursion
-            value: "yes"
-          - name: qname-minimization
-            value: strict
           - name: deny-answer-addresses
             entries:
               - 127.0.0.1
               - 10.53.0.20
               - 10.54.0.10
-          - name: blackhole
-            entries:
-              - bogons
           - name: allow-query
             entries:
               - 127.0.0.1
@@ -917,12 +839,6 @@ Configure secondary zones that transfer from a Samba BIND_DLZ primary.
               - 127.0.0.1
               - 10.53.0.0/24
               - 10.54.0.0/24
-          - name: recursive-clients
-            value: 300
-          - name: fetches-per-server
-            value: 100 fail
-          - name: fetches-per-zone
-            value: 200 fail
           - name: rate-limit
             entries:
               - responses-per-second 5

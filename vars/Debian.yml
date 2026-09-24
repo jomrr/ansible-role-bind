@@ -44,11 +44,8 @@ __bind_platform_zones: []
 __bind_includes:
   - "/etc/bind/named.conf.root-hints"
 
-# Debian has no package-native option-level includes.
-__bind_platform_options: []
-
 # Native BIND option values from Debian and Ubuntu bind9 packages.
-__bind_options:
+__bind_platform_options:
   - name: "directory"
     value: '"/var/cache/bind"'
 

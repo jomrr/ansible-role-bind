@@ -39,8 +39,6 @@ provisioner:
             entries:
               - "none"
         bind_options:
-          - name: "recursion"
-            value: "yes"
           - name: "allow-query"
             entries:
               - "any"
@@ -50,9 +48,6 @@ provisioner:
           - name: "allow-recursion"
             entries:
               - "any"
-          - name: "allow-transfer"
-            entries:
-              - "none"
           - name: "dnssec-validation"
             value: "no"
         bind_response_policy:

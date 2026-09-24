@@ -50,15 +50,11 @@ __bind_platform_zones:
     type: "master"
     file: "127.0.0.zone"
 
-# openSUSE crypto policy include rendered inside the options block.
-__bind_platform_options:
-  - include: "/etc/crypto-policies/back-ends/bind.config"
-
 # Default included config files
 __bind_includes: []
 
-# Native BIND option values from openSUSE bind packages.
-__bind_options:
+# Native BIND option values and crypto policy from openSUSE bind packages.
+__bind_platform_options:
   - name: "directory"
     value: '"/var/lib/named"'
   - name: "managed-keys-directory"
@@ -67,6 +63,7 @@ __bind_options:
     value: '"/var/log/named/dump.db"'
   - name: "statistics-file"
     value: '"/var/log/named/stats"'
+  - include: "/etc/crypto-policies/back-ends/bind.config"
 
 # openSUSE bind packages do not configure explicit logging by default.
 __bind_logging:

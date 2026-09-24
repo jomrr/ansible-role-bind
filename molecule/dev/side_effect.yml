@@ -33,13 +33,63 @@
         state: present
       no_log: true
 
-    - name: BIND | Change the existing static record
+    - name: BIND | Change the static record and override configuration entries
       ansible.builtin.include_role:
         name: '{{ lookup(''ansible.builtin.env'', ''MOLECULE_PROJECT_DIRECTORY'') }}'
       vars:
         bind_molecule_static_address: 192.0.2.81
         bind_validate_except:
           - example.test
+        bind_acls:
+          - name: local
+            entries:
+              - localhost
+              - 10.53.0.0/24
+          - name: dev_clients
+            entries: []
+        bind_options:
+          - name: prefetch
+            value: 5 60
+          - name: tcp-clients
+            value: 101
+          - name: qname-minimization
+            value: ""
+
+    - name: BIND | Read generated configuration
+      become: true
+      become_user: root
+      ansible.builtin.slurp:
+        src: "{{ __bind_conf_file }}"
+      register: __bind_test_configuration
+
+    - name: BIND | Verify overrides retain the security baseline
+      ansible.builtin.assert:
+        that:
+          - >-
+            __bind_test_configuration.content | b64decode | regex_findall('(?m)^acl "([^"]+)" \\{') ==
+            ['local', 'my_addresses', 'bogons', 'dev_clients']
+          - >-
+            __bind_test_configuration.content | b64decode is search(
+              '(?s)acl "local" \\{\\s*localhost;\\s*10\\.53\\.0\\.0/24;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('acl "dev_clients" \\{\\s*\\};')
+          - __bind_test_configuration.content | b64decode | regex_findall('(?m)^\\s*prefetch ([^;]+);') == ['5 60']
+          - __bind_test_configuration.content | b64decode | regex_findall('(?m)^\\s*tcp-clients ([^;]+);') == ['101']
+          - __bind_test_configuration.content | b64decode is not search('(?m)^\\s*qname-minimization\\s')
+          - __bind_test_configuration.content | b64decode is search('allow-query \\{\\s*local;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('allow-query-cache \\{\\s*local;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('allow-recursion \\{\\s*local;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('allow-transfer \\{\\s*none;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('deny-answer-addresses \\{\\s*my_addresses;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('blackhole \\{\\s*bogons;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('dnssec-validation auto;')
+          - __bind_test_configuration.content | b64decode is search('validate-except \\{\\s*example[.]test;\\s*\\};')
+          - __bind_test_configuration.content | b64decode is search('edns-udp-size 1232;')
+          - __bind_test_configuration.content | b64decode is search('max-udp-size 1232;')
+          - __bind_test_configuration.content | b64decode is search('hostname none;')
+          - __bind_test_configuration.content | b64decode is search('server-id none;')
+          - __bind_test_configuration.content | b64decode is search('version none;')
+          - __bind_test_configuration.content | b64decode is search('minimal-responses yes;')
+        quiet: true
 
     - name: BIND | Resolve changed static record
       ansible.builtin.command:
