@@ -569,7 +569,11 @@ retaining all other default options.
 
 ### Recursive resolver for a local network
 
-Allow local clients to query a recursive resolver with explicit upstream forwarders.
+Allow local clients to query a recursive resolver with explicit upstream
+forwarders. Defining `bind_options` replaces the role's default list, so
+this example includes the complete recursive security baseline and keeps
+the `bind_validate_except` reference. Listeners are configured separately
+through `bind_listeners`; response rate limiting is not enabled.
 
 ```yaml
 ---
@@ -579,16 +583,27 @@ Allow local clients to query a recursive resolver with explicit upstream forward
   roles:
     - role: jomrr.bind
       vars:
-        bind_options:
+        bind_listeners:
           - name: listen-on
-            arguments: port 53
+            port: 53
             entries:
               - 127.0.0.1
               - 10.53.0.53
           - name: listen-on-v6
-            arguments: port 53
+            port: 53
             entries:
               - none
+        bind_options:
+          - name: recursion
+            value: "yes"
+          - name: qname-minimization
+            value: strict
+          - name: deny-answer-addresses
+            entries:
+              - my_addresses
+          - name: blackhole
+            entries:
+              - bogons
           - name: allow-query
             entries:
               - 127.0.0.1
@@ -601,34 +616,43 @@ Allow local clients to query a recursive resolver with explicit upstream forward
             entries:
               - 127.0.0.1
               - 10.53.0.0/24
-          - name: recursion
-            value: "yes"
-          - name: qname-minimization
-            value: strict
-          - name: deny-answer-addresses
+          - name: allow-transfer
             entries:
-              - 127.0.0.1
-              - 10.53.0.53
-          - name: blackhole
-            entries:
-              - bogons
+              - none
+          - name: dnssec-validation
+            value: auto
+          - name: validate-except
+            entries: "{{ bind_validate_except }}"
+          - name: edns-udp-size
+            value: 1232
+          - name: max-udp-size
+            value: 1232
+          - name: max-clients-per-query
+            value: 50
+          - name: tcp-clients
+            value: 100
           - name: recursive-clients
             value: 300
+          - name: max-cache-size
+            value: 512M
+          - name: max-cache-ttl
+            value: 86400
+          - name: max-recursion-depth
+            value: 5
+          - name: max-recursion-queries
+            value: 50
           - name: fetches-per-server
             value: 100 fail
           - name: fetches-per-zone
             value: 200 fail
-          - name: rate-limit
-            entries:
-              - responses-per-second 5
-              - referrals-per-second 5
-              - nodata-per-second 5
-              - nxdomains-per-second 5
-              - errors-per-second 5
-              - all-per-second 20
-              - window 5
-              - slip 2
-              - qps-scale 250
+          - name: hostname
+            value: none
+          - name: server-id
+            value: none
+          - name: minimal-responses
+            value: "yes"
+          - name: version
+            value: none
           - name: forward
             value: only
           - name: forwarders
