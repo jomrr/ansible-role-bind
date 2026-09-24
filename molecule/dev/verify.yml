@@ -35,3 +35,41 @@
         - __bind_test_answer.stdout_lines == [__bind_test_record.answer]
       retries: 10
       delay: 1
+
+    - name: BIND | Verify authoritative negative caching TTL
+      ansible.builtin.command:
+        argv:
+          - dig
+          - '@127.0.0.1'
+          - '{{ __bind_test_negative.name }}'
+          - '{{ __bind_test_negative.type }}'
+          - +norecurse
+          - +noall
+          - +comments
+          - +authority
+          - +tries=1
+          - +time=2
+      loop:
+        - name: missing.example.test
+          type: A
+          status: NXDOMAIN
+          zone: example.test.
+        - name: www.example.test
+          type: AAAA
+          status: NOERROR
+          zone: example.test.
+        - name: missing.ddns.test
+          type: A
+          status: NXDOMAIN
+          zone: ddns.test.
+      loop_control:
+        loop_var: __bind_test_negative
+        label: '{{ __bind_test_negative.name }} {{ __bind_test_negative.type }}'
+      register: __bind_test_negative_answer
+      changed_when: false
+      failed_when: >-
+        __bind_test_negative_answer.rc != 0 or
+        __bind_test_negative_answer.stdout is not search('status: ' ~ __bind_test_negative.status ~ ',') or
+        __bind_test_negative_answer.stdout is not search(
+          '(?m)^' ~ (__bind_test_negative.zone | regex_escape)
+          ~ '\s+3600\s+IN\s+SOA\s+.*\s3600$')

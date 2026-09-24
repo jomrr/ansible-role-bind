@@ -46,6 +46,8 @@ changes.
 collections:
   - name: community.general
     version: '>=12.0.0'
+  - name: ansible.posix
+    version: '>=2.0.0'
 ```
 
 ## Role Variables
@@ -144,7 +146,7 @@ deduplication.
 Set name on a raw or include entry when it should replace an earlier same-name
 option.
 Empty values omit the matching option.
-The default includes a rate-limit entry for BIND response rate limiting.
+Response rate limiting is opt-in through a rate-limit option entry.
 
 ### `bind_logging`
 
@@ -270,12 +272,13 @@ bind_zone_file_expire: 1w
 
 Type: `str`. Required: `false`.
 
-Default SOA minimum TTL for managed zone files.
+Default SOA MINIMUM field for negative caching (RFC 2308).
+Negative answers use the lower of this value and the SOA record TTL.
 
 Default:
 
 ```yaml
-bind_zone_file_minimum: 1d
+bind_zone_file_minimum: 1h
 ```
 
 ## Managed Files
@@ -313,7 +316,8 @@ changes notify the restart handler.
   addresses.
 - Recursive defaults blackhole bogon source addresses.
 - Recursive defaults limit outstanding fetches per upstream server and zone.
-- Response rate limiting is enabled by default.
+- Response rate limiting is opt-in; the authoritative DNS example configures
+  explicit limits.
 - Store TSIG secrets in Ansible Vault.
 
 ## Operational Notes
@@ -360,8 +364,14 @@ changes notify the restart handler.
 - Do not combine BIND `update-policy` and `allow-update` for the same zone.
 - Use RPZ zones and `response-policy` statements for DNSBL-style response
   filtering.
-- Override the `rate-limit` entry in `bind_options` to tune BIND response rate
-  limiting.
+- Add a `rate-limit` entry to `bind_options` to enable BIND response rate
+  limiting for authoritative DNS.
+- `bind_zone_file_minimum` sets SOA.MINIMUM for negative caching, not a lower
+  bound for record TTLs. Under RFC 2308, NXDOMAIN and NODATA use the lower of
+  SOA.MINIMUM and the SOA record TTL; both default to one hour. The SOA inherits
+  `$TTL` from `bind_zone_file_ttl` or the per-zone `ttl` override.
+- Static zones receive SOA changes on convergence. Existing dynamic zone files
+  are not rewritten; their SOA must be updated through DDNS.
 
 ## Supported Platforms
 
@@ -461,7 +471,10 @@ Allow local clients to query a recursive resolver with explicit upstream forward
 
 ### Authoritative response rate limiting
 
-Configure BIND response rate limiting through the native options block.
+Serve a static example.com primary zone with recursion and cache access
+disabled and response rate limiting enabled. Adjust the listener address
+and limits to the deployment. RRL is intended for authoritative service;
+on recursive resolvers it can delay legitimate repeated queries.
 
 ```yaml
 ---
@@ -471,13 +484,37 @@ Configure BIND response rate limiting through the native options block.
   roles:
     - role: jomrr.bind
       vars:
-        bind_tsig_keys:
-          - name: ddns
-            algorithm: hmac-sha256
-            secret: "{{ vault_bind_ddns_secret }}"
+        bind_listeners:
+          - name: listen-on
+            port: 53
+            entries:
+              - 127.0.0.1
+              - 10.53.0.53
+          - name: listen-on-v6
+            port: 53
+            entries:
+              - none
         bind_options:
           - name: recursion
             value: "no"
+          - name: allow-query
+            entries:
+              - any
+          - name: allow-query-cache
+            entries:
+              - none
+          - name: allow-recursion
+            entries:
+              - none
+          - name: allow-transfer
+            entries:
+              - none
+          - name: hostname
+            value: none
+          - name: server-id
+            value: none
+          - name: version
+            value: none
           - name: rate-limit
             entries:
               - responses-per-second 5
@@ -489,6 +526,21 @@ Configure BIND response rate limiting through the native options block.
               - window 5
               - slip 2
               - qps-scale 250
+        bind_zones:
+          - name: example.com
+            type: primary
+            file: db.example.com
+            primary: ns1.example.com.
+            email: hostmaster.example.com.
+            ns_records:
+              - name: ns1.example.com.
+                addresses:
+                  - type: A
+                    address: 10.53.0.53
+            records:
+              - name: www
+                type: A
+                data: 10.53.0.80
 ```
 
 ### DNSBL with RPZ
@@ -819,6 +871,7 @@ Configure an authoritative secondary zone.
 
 ## References
 
+- [RFC 2308: Negative Caching of DNS Queries](https://www.rfc-editor.org/rfc/rfc2308.html)
 - [BIND 9 Documentation](https://bind9.readthedocs.io/en/latest/)
 - [BIND 9 Dynamic Update Policies](https://bind9.readthedocs.io/en/latest/reference.html#namedconf-statement-update-policy)
 - [BIND 9 Response Rate Limiting](https://bind9.readthedocs.io/en/latest/reference.html#namedconf-statement-rate-limit)

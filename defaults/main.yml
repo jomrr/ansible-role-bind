@@ -149,17 +149,6 @@ bind_options:
     value: "100 fail"
   - name: "fetches-per-zone"
     value: "200 fail"
-  - name: "rate-limit"
-    entries:
-      - "responses-per-second 5"
-      - "referrals-per-second 5"
-      - "nodata-per-second 5"
-      - "nxdomains-per-second 5"
-      - "errors-per-second 5"
-      - "all-per-second 20"
-      - "window 5"
-      - "slip 2"
-      - "qps-scale 250"
   - name: "hostname"
     value: "none"
   - name: "server-id"
@@ -319,6 +308,6 @@ bind_zone_file_retry: "15m"
 bind_zone_file_expire: "1w"
 # bind_zone_file_expire: 2w
 
-# Default SOA minimum TTL for managed zone files.
-bind_zone_file_minimum: "1d"
-# bind_zone_file_minimum: 12h
+# Default SOA MINIMUM field for negative caching (RFC 2308).
+bind_zone_file_minimum: "1h"
+# bind_zone_file_minimum: 30m

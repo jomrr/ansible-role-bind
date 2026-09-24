@@ -1,0 +1,29 @@
+---
+# role: bind
+# file: molecule/resources/playbooks/prepare.yml
+
+- name: "Molecule | prepare | bind"
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: "BIND | Refresh APT package metadata"
+      become: true
+      become_user: root
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_facts.pkg_mgr == 'apt'
+
+    - name: "BIND | Refresh DNF package metadata"
+      become: true
+      become_user: root
+      ansible.builtin.dnf:
+        update_cache: true
+      when: ansible_facts.pkg_mgr in ['dnf', 'dnf5']
+
+    - name: "BIND | Refresh Zypper package metadata"
+      become: true
+      become_user: root
+      community.general.zypper_repository:
+        repo: '*'
+        runrefresh: true
+      when: ansible_facts.pkg_mgr == 'zypper'
