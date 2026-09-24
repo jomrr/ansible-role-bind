@@ -36,6 +36,8 @@
         name: '{{ lookup(''ansible.builtin.env'', ''MOLECULE_PROJECT_DIRECTORY'') }}'
       vars:
         bind_molecule_static_address: 192.0.2.81
+        bind_validate_except:
+          - example.test
     - name: BIND | Resolve changed static record
       ansible.builtin.command:
         argv:

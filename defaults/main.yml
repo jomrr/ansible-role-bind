@@ -96,6 +96,11 @@ bind_listeners:
 #     entries:
 #       - any
 
+# Domains excluded from DNSSEC validation, including their subdomains.
+bind_validate_except: []
+# bind_validate_except:
+#   - example.com
+
 # Ordered statements rendered inside the BIND options block. Internal defaults,
 # platform defaults, and public options are merged with public options taking
 # precedence. Entries with the same name keep the first output position and use
@@ -127,6 +132,8 @@ bind_options:
       - "none"
   - name: "dnssec-validation"
     value: "auto"
+  - name: "validate-except"
+    entries: "{{ bind_validate_except }}"
   - name: "edns-udp-size"
     value: 1232
   - name: "max-udp-size"

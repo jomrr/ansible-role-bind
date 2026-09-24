@@ -132,6 +132,20 @@ Type: `list`. Required: `false`.
 BIND listen-on or listen-on-v6 statements rendered inside the options block.
 Listener entries support classic DNS, DNS-over-TLS, and DNS-over-HTTPS.
 
+### `bind_validate_except`
+
+Type: `list`. Required: `false`.
+
+Domains permanently excluded from DNSSEC validation, including their subdomains.
+Referenced by the default bind_options list; replacing that list removes this
+binding.
+
+Default:
+
+```yaml
+bind_validate_except: []
+```
+
 ### `bind_options`
 
 Type: `list`. Required: `false`.
@@ -339,6 +353,10 @@ changes notify the restart handler.
 - Raw and include option entries without `name` are opaque and are rendered
   unchanged. Add `name` to a raw or include entry only when it should replace an
   earlier same-name option.
+- `bind_validate_except` permanently excludes the listed domains and their
+  subdomains from DNSSEC validation. Its default is `[]`, with no exceptions.
+  The default `bind_options` list references this variable; replacing that list
+  removes the reference unless explicitly included again.
 - Platform default includes are rendered automatically before additional
   `bind_includes`.
 - `bind_dlz` renders top-level DLZ blocks only; all zone declarations belong in
@@ -397,6 +415,23 @@ Apply the default localhost-only BIND configuration.
   gather_facts: true
   roles:
     - role: jomrr.bind
+```
+
+### DNSSEC validation exceptions
+
+Exclude example.com and its subdomains from DNSSEC validation while
+retaining all other default options.
+
+```yaml
+---
+- name: Configure ISC BIND with a DNSSEC validation exception
+  hosts: bind
+  gather_facts: true
+  roles:
+    - role: jomrr.bind
+      vars:
+        bind_validate_except:
+          - example.com
 ```
 
 ### Recursive resolver for a local network

@@ -185,6 +185,15 @@ argument_specs:
             elements: raw
             required: true
             description: Address match list entries for the listener.
+      bind_validate_except:
+        type: list
+        elements: str
+        required: false
+        default: []
+        description:
+          - Domains permanently excluded from DNSSEC validation, including their subdomains.
+          - Referenced by the default bind_options list; replacing that list removes this
+            binding.
       bind_options:
         type: list
         elements: dict
