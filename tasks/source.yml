@@ -79,7 +79,6 @@
             owner: "{{ __bind_zone_targets.static.owner }}"
             group: "{{ __bind_zone_targets.static.group }}"
             mode: "{{ __bind_zone_targets.static.mode }}"
-            backup: true
           diff: false
           register: __bind_source_installations
           loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
