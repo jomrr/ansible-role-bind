@@ -12,20 +12,14 @@ provisioner:
     defaults:
       forks: 8
       interpreter_python: "auto_silent"
-      allow_world_readable_tmpfiles: true
       callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
       callback_result_format: "yaml"
-      remote_tmp: "/tmp/.ansible/tmp"
-    ssh_connection:
+    connection:
       pipelining: true
-  log: true
-  playbooks:
-    prepare: "../resources/playbooks/prepare_ddns.yml"
-    converge: "../resources/playbooks/converge.yml"
-    verify: "verify.yml"
   inventory:
     group_vars:
       all:
+        ansible_podman_mount_detection: false
         bind_multi_tsig_secret: "9EovO6m9ap7fG3ndj0a47DOOPkU1Ui4TRGM/gE/IkC8="
         bind_tsig_keys:
           - name: "ddns"
@@ -114,6 +108,11 @@ provisioner:
         bind_multi_ip: "172.29.253.11"
         bind_multi_primary_ip: "172.29.253.10"
         bind_multi_secondary_ip: "172.29.253.11"
+  log: true
+  playbooks:
+    prepare: "../resources/playbooks/prepare_ddns.yml"
+    converge: "../resources/playbooks/converge.yml"
+    verify: "verify.yml"
 verifier:
   name: "ansible"
 scenario:

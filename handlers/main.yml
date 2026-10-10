@@ -3,6 +3,8 @@
 # file: handlers/main.yml
 
 - name: "BIND | Restart service"
+  become: true
+  become_user: root
   ansible.builtin.systemd_service:
     name: "{{ __bind_service_name }}"
     state: restarted

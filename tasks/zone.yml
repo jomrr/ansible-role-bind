@@ -3,6 +3,8 @@
 # file: tasks/zone.yml
 
 - name: "BIND | Inspect existing zone file"
+  become: true
+  become_user: root
   ansible.builtin.stat:
     path: "{{ __bind_zone.file_path }}"
     get_checksum: false
@@ -10,6 +12,8 @@
   register: __bind_zone_file
 
 - name: "BIND | Read existing SOA serial"
+  become: true
+  become_user: root
   ansible.builtin.command:
     argv:
       - "{{ __bind_checkzone_command }}"
@@ -36,6 +40,8 @@
       }}
   block:
     - name: "BIND | Generate zone file"
+      become: true
+      become_user: root
       ansible.builtin.template:
         src: "zone.j2"
         dest: "{{ __bind_zone.file_path }}"
@@ -48,6 +54,8 @@
       notify: restart
 
     - name: "BIND | Update zone serial"
+      become: true
+      become_user: root
       ansible.builtin.replace:
         path: "{{ __bind_zone.file_path }}"
         regexp: "{{ __bind_zone_serial_regexp }}"

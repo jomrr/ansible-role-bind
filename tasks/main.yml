@@ -29,11 +29,15 @@
   ansible.builtin.import_tasks: "assert.yml"
 
 - name: "BIND | Install packages"
+  become: true
+  become_user: root
   ansible.builtin.package:
     name: "{{ __bind_packages }}"
     state: present
 
 - name: "BIND | Generate TSIG key files"
+  become: true
+  become_user: root
   ansible.builtin.template:
     src: "tsig.j2"
     dest: "{{ __bind_tsig_key_dir }}/{{ __bind_tsig_key.name }}.key"
@@ -59,6 +63,8 @@
     label: "{{ __bind_zone.name }}"
 
 - name: "BIND | Bootstrap dynamic zone files"
+  become: true
+  become_user: root
   ansible.builtin.template:
     src: "zone.j2"
     dest: "{{ __bind_zone.file_path }}"
@@ -81,6 +87,8 @@
   when: __bind_effective_zones | selectattr('source', 'defined') | list | length > 0
 
 - name: "BIND | Generate main configuration file"
+  become: true
+  become_user: root
   ansible.builtin.template:
     src: "named.conf.j2"
     dest: "{{ __bind_conf_file }}"
@@ -95,6 +103,8 @@
   ansible.builtin.meta: flush_handlers
 
 - name: "BIND | Enable and start service"
+  become: true
+  become_user: root
   ansible.builtin.systemd_service:
     name: "{{ __bind_service_name }}"
     state: started

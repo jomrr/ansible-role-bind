@@ -12,20 +12,14 @@ provisioner:
     defaults:
       forks: 8
       interpreter_python: "auto_silent"
-      allow_world_readable_tmpfiles: true
       callbacks_enabled: "ansible.posix.profile_tasks,ansible.posix.timer"
       callback_result_format: "yaml"
-      remote_tmp: "/tmp/.ansible/tmp"
-    ssh_connection:
+    connection:
       pipelining: true
-  log: true
-  playbooks:
-    prepare: "../resources/playbooks/prepare.yml"
-    converge: "../resources/playbooks/converge.yml"
-    verify: "verify.yml"
   inventory:
     group_vars:
       all:
+        ansible_podman_mount_detection: false
         bind_molecule_dnsbl_valid_domain: "example.org"
         bind_molecule_dnsbl_blocked_domain: "example.com"
         bind_molecule_dnsbl_blocked_address: "0.0.0.0"
@@ -66,6 +60,11 @@ provisioner:
               - name: "{{ bind_molecule_dnsbl_blocked_domain }}"
                 type: "A"
                 data: "{{ bind_molecule_dnsbl_blocked_address }}"
+  log: true
+  playbooks:
+    prepare: "../resources/playbooks/prepare.yml"
+    converge: "../resources/playbooks/converge.yml"
+    verify: "verify.yml"
 verifier:
   name: "ansible"
 scenario:
