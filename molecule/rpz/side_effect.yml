@@ -9,6 +9,21 @@
     - name: BIND | Load platform paths for verification
       ansible.builtin.include_vars: "{{ playbook_dir }}/../../vars/{{ ansible_facts.os_family }}.yml"
 
+    - name: BIND | Load distribution overrides for verification
+      ansible.builtin.include_vars: "{{ __bind_platform_file }}"
+      vars:
+        __bind_platform_files:
+          files:
+            - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+            - "{{ ansible_facts.distribution }}.yml"
+          paths:
+            - "{{ playbook_dir }}/../../vars"
+          skip: true
+      loop: "{{ query('ansible.builtin.first_found', __bind_platform_files) }}"
+      loop_control:
+        loop_var: __bind_platform_file
+        label: "{{ __bind_platform_file }}"
+
     - name: BIND | Verify initial feed blocks the test domain
       ansible.builtin.command:
         argv: [dig, "@127.0.0.1", blocked.example.test, A, +tries=1, +time=2]
@@ -37,10 +52,27 @@
     - name: BIND | Load source zone platform path
       ansible.builtin.include_vars: "{{ playbook_dir }}/../../vars/{{ ansible_facts.os_family }}.yml"
 
+    - name: BIND | Restrict installed source permissions
+      become: true
+      become_user: root
+      ansible.builtin.file:
+        path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
+        mode: "0600"
+
+    - name: BIND | Restore permissions with unchanged source contents
+      ansible.builtin.include_role:
+        name: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+
     - name: BIND | Read installed feed before check mode
       ansible.builtin.stat:
         path: "{{ __bind_zone_targets.static.path }}/db.feed.rpz.example.com"
       register: __bind_rpz_before_check
+
+    - name: BIND | Verify source permissions were restored
+      ansible.builtin.assert:
+        that:
+          - __bind_rpz_before_check.stat.mode == __bind_zone_targets.static.mode
+        quiet: true
 
     - name: BIND | Publish updated feed on controller
       ansible.builtin.copy:

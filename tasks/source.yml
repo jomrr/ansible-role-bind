@@ -69,6 +69,15 @@
             loop_var: __bind_zone
             label: "{{ __bind_zone.name }}"
 
+        - name: "BIND | Find validated source candidates"
+          become: true
+          become_user: root
+          ansible.builtin.find:
+            paths: "{{ __bind_source_stage.path }}"
+            file_type: file
+            hidden: true
+          register: __bind_source_staged
+
         - name: "BIND | Install validated source files"
           become: true
           become_user: root
@@ -81,6 +90,23 @@
             mode: "{{ __bind_zone_targets.static.mode }}"
           diff: false
           register: __bind_source_installations
+          loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
+          loop_control:
+            loop_var: __bind_zone
+            label: "{{ __bind_zone.name }}"
+          when: >-
+            (__bind_source_stage.path ~ '/' ~ __bind_zone.file)
+            in (__bind_source_staged.files | map(attribute='path'))
+
+        - name: "BIND | Set source zone file permissions"
+          become: true
+          become_user: root
+          ansible.builtin.file:
+            path: "{{ __bind_zone.file_path }}"
+            state: file
+            owner: "{{ __bind_zone_targets.static.owner }}"
+            group: "{{ __bind_zone_targets.static.group }}"
+            mode: "{{ __bind_zone_targets.static.mode }}"
           loop: "{{ __bind_effective_zones | selectattr('source', 'defined') | list }}"
           loop_control:
             loop_var: __bind_zone

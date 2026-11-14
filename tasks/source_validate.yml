@@ -2,17 +2,13 @@
 # role: bind
 # file: tasks/source_validate.yml
 
-- name: "BIND | Stage source zone candidate"
-  become: true
-  become_user: root
-  ansible.builtin.copy:
-    src: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
-    dest: "{{ __bind_source_stage.path }}/{{ __bind_zone.file }}"
-    owner: root
-    group: root
-    mode: "0600"
-  diff: false
-  changed_when: false
+- name: "BIND | Inspect downloaded source zone"
+  ansible.builtin.stat:
+    path: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
+    get_mime: false
+    get_attributes: false
+  delegate_to: localhost
+  become: false
   register: __bind_source_candidate
 
 - name: "BIND | Inspect installed source zone"
@@ -25,8 +21,20 @@
   register: __bind_source_existing
 
 - name: "BIND | Check changed source zone"
-  when: __bind_source_candidate.checksum != __bind_source_existing.stat.checksum | default('')
+  when: __bind_source_candidate.stat.checksum != __bind_source_existing.stat.checksum | default('')
   block:
+    - name: "BIND | Stage source zone candidate"
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        src: "{{ __bind_source_download.path }}/{{ __bind_zone.file }}"
+        dest: "{{ __bind_source_stage.path }}/{{ __bind_zone.file }}"
+        owner: root
+        group: root
+        mode: "0600"
+      diff: false
+      changed_when: false
+
     - name: "BIND | Read source master file directives"
       become: true
       become_user: root
