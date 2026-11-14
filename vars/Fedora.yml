@@ -8,3 +8,6 @@ __bind_packages:
   - "bind-dnssec-utils"
   - "bind-utils"
   - "dns-root-data"
+
+# Service name for bind
+__bind_service_name: "bind"

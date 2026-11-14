@@ -10,6 +10,7 @@
   vars:
     __bind_platform_files:
       files:
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
         - "{{ ansible_facts.distribution }}.yml"
       paths:
         - "vars"

@@ -1,0 +1,13 @@
+---
+# role: bind
+# file: vars/Fedora-44.yml
+
+# Packages for bind
+__bind_packages:
+  - "bind"
+  - "bind-dnssec-utils"
+  - "bind-utils"
+  - "dns-root-data"
+
+# Service name for bind
+__bind_service_name: "named"
